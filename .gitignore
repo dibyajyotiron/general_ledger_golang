@@ -1,0 +1,11 @@
+.idea/
+.DS_Store
+
+runtime/*
+!runtime/qrcode/bg.jpg
+!runtime/fonts
+
+vendor
+docs
+*.log
+.env
