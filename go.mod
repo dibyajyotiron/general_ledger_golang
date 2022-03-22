@@ -27,7 +27,6 @@ require (
 	github.com/tklauser/go-sysconf v0.3.10 // indirect
 	github.com/ugorji/go v1.2.7 // indirect
 	github.com/unknwon/com v1.0.1
-	github.com/urfave/cli v1.20.0 // indirect
 	golang.org/x/crypto v0.0.0-20220321153916-2c7772ba3064 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/sys v0.0.0-20220319134239-a9b59b0215f8 // indirect
