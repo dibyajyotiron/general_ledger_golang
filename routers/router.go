@@ -1,6 +1,7 @@
 package routers
 
 import (
+	middleware2 "general_ledger_golang/middleware"
 	v1 "general_ledger_golang/routers/api/v1"
 
 	"github.com/gin-gonic/gin"
@@ -8,7 +9,7 @@ import (
 	_ "general_ledger_golang/docs"
 
 	middleware "general_ledger_golang/middleware/cors"
-	error_middleware "general_ledger_golang/middleware/errors"
+	errorMiddleware "general_ledger_golang/middleware/errors"
 	"general_ledger_golang/middleware/jwt"
 )
 
@@ -21,7 +22,7 @@ func InitRouter() *gin.Engine {
 
 	// Custom middlewares
 	r.Use(middleware.CORS())
-	r.Use(gin.CustomRecovery(error_middleware.Error_Handler))
+	r.Use(gin.CustomRecovery(errorMiddleware.ErrorHandler))
 
 	// apiV1 groups
 	apiV1 := r.Group("/api/v1")
@@ -29,11 +30,13 @@ func InitRouter() *gin.Engine {
 	// Jwt unprotected routes
 	apiV1.GET("/test", v1.TestAppStatus)
 
+	// Books route
+	apiV1Groups := apiV1.Group("/books")
+	apiV1Groups.POST("/", middleware2.UseRequestBody(), v1.CreateBook)
+
 	// Jwt protected routes
-	apiV1.Use(jwt.JWT())
-	{
-		apiV1.GET("/secured/test", v1.TestAppStatus)
-	}
+
+	apiV1.GET("/secured/test", jwt.JWT(), v1.TestAppStatus)
 
 	// apiV2 Jwt protected routes
 	apiV2 := r.Group("/api/v2", jwt.JWT())

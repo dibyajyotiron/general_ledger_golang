@@ -4,22 +4,21 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"time"
 
 	"gorm.io/driver/postgres"
-	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	config "general_ledger_golang/pkg/config"
+	"general_ledger_golang/pkg/config"
 )
 
 var db *gorm.DB
 var sqlDB *sql.DB
 
 type Model struct {
-	ID         int `gorm:"primary_key" json:"id"`
-	CreatedOn  int `json:"created_on"`
-	ModifiedOn int `json:"modified_on"`
-	DeletedOn  int `json:"deleted_on"`
+	Id        uint64    `gorm:"primaryKey;autoIncrement;" json:"id"`
+	CreatedAt time.Time `gorm:"autoCreateTime;column:createdAt" json:"createdAt"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime;column:updatedAt" json:"updatedAt"`
 }
 
 // Setup initializes the database instance
@@ -40,6 +39,11 @@ func Setup() {
 		log.Fatalf("models.Setup err: %v", err)
 	}
 
+	if err = db.AutoMigrate(&Book{}); err != nil {
+		fmt.Printf("%+v", err)
+		panic(err)
+	}
+
 	sqlDB, err = db.DB()
 
 	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
@@ -50,5 +54,10 @@ func Setup() {
 
 // CloseDB closes database connection (unnecessary)
 func CloseDB() {
-	defer sqlDB.Close()
+	defer func(sqlDB *sql.DB) {
+		err := sqlDB.Close()
+		if err != nil {
+
+		}
+	}(sqlDB)
 }

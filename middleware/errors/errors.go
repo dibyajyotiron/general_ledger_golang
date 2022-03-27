@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Recovery handler from panics
-func Error_Handler(c *gin.Context, recovered interface{}) {
+// ErrorHandler Recovery handler from panics
+func ErrorHandler(c *gin.Context, recovered interface{}) {
 	appG := app.Gin{C: c}
 	if err, ok := recovered.(string); ok {
 		appG.Response(
