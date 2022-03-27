@@ -38,7 +38,7 @@ type Server struct {
 
 var ServerSetting = &Server{}
 
-// DB settings Section
+// Database DB settings Section
 type Database struct {
 	Type        string
 	User        string
