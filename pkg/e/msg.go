@@ -4,6 +4,7 @@ var MsgFlags = map[int]string{
 	SUCCESS:             "SUCCESS",
 	DEBIT:               "DEBIT",
 	CREDIT:              "CREDIT",
+	NOT_EXIST:           "NOT_EXIST",
 	ERROR:               "ERROR",
 	MISSING_AUTH_HEADER: "MISSING_AUTH_HEADER",
 	INVALID_PARAMS:      "INVALID_PARAMS",

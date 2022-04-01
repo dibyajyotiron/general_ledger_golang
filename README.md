@@ -30,3 +30,8 @@ To run the server,
   3. run `./start_local_server.sh`
 
 The server should run and have auto reload.
+
+Notes:
+1. Book Create/update method will create a book if the name of the book doesn't exist else it will update the book.
+2. It is the ledger client's responsibility to maintain uniqueness of the book. 
+3. To ensure uniqueness of the books for a given account holder, ledger client should create debit/credit books based on uuid-v1. 

@@ -28,15 +28,26 @@ func ParseReqBodyToMap(reqBody io.ReadCloser) map[string]interface{} {
 
 	if err != nil {
 		fmt.Printf("Req.Body reading failed from ParseReqBodyToMap, error: %+v", err)
-		panic(err)
+		return nil
 	}
 
 	err = json.Unmarshal(bodyBytes, &x)
 
 	if err != nil {
 		fmt.Printf("Req.Body parsing failed inside UseRequestBody, error: %+v", err)
-		panic(err)
+		return nil
 	}
 
 	return x
+}
+
+func StructToJSON(m interface{}) map[string]interface{} {
+	resultStr, _ := json.Marshal(m)
+	var result map[string]interface{}
+	err := json.Unmarshal(resultStr, &result)
+	if err != nil {
+		fmt.Printf("Unable to convert model to Struct %+v", err)
+		return nil
+	}
+	return result
 }

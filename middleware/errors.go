@@ -1,4 +1,4 @@
-package error_middleware
+package middleware
 
 import (
 	"general_ledger_golang/pkg/app"

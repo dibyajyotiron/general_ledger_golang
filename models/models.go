@@ -4,10 +4,12 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
 	"general_ledger_golang/pkg/config"
 )
@@ -32,9 +34,13 @@ func Setup() {
 		config.DatabaseSetting.Name,
 		config.DatabaseSetting.SSLMode,
 	)
+	conf := &gorm.Config{}
 
-	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if os.Getenv("APP_ENV") != "prod" {
+		conf.Logger = logger.Default.LogMode(logger.Info)
+	}
 
+	db, err = gorm.Open(postgres.Open(dsn), conf)
 	if err != nil {
 		log.Fatalf("models.Setup err: %v", err)
 	}
