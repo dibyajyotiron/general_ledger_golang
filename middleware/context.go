@@ -2,8 +2,9 @@ package middleware
 
 import (
 	"bytes"
-	"github.com/gin-gonic/gin"
 	"io/ioutil"
+
+	"github.com/gin-gonic/gin"
 )
 
 func UseRequestBody() gin.HandlerFunc {
@@ -17,6 +18,7 @@ func UseRequestBody() gin.HandlerFunc {
 		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 
 		c.Next()
+		return
 	}
 }
 

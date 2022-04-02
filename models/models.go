@@ -45,7 +45,7 @@ func Setup() {
 		log.Fatalf("models.Setup err: %v", err)
 	}
 
-	if err = db.AutoMigrate(&Book{}); err != nil {
+	if err = db.AutoMigrate(&Book{}, &Operation{}, &Posting{}); err != nil {
 		fmt.Printf("%+v", err)
 		panic(err)
 	}
@@ -58,12 +58,17 @@ func Setup() {
 	sqlDB.SetMaxOpenConns(100)
 }
 
+// GetDB returns the database connections
+func GetDB() (*gorm.DB, *sql.DB) {
+	return db, sqlDB
+}
+
 // CloseDB closes database connection (unnecessary)
 func CloseDB() {
 	defer func(sqlDB *sql.DB) {
 		err := sqlDB.Close()
 		if err != nil {
-
+			panic(err)
 		}
 	}(sqlDB)
 }

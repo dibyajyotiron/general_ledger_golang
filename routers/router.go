@@ -27,9 +27,14 @@ func InitRouter() *gin.Engine {
 	apiV1.GET("/test", v1.TestAppStatus)
 
 	// Books route
-	apiV1Groups := apiV1.Group("/books")
-	apiV1Groups.POST("/", middleware.UseRequestBody(), v1.CreateOrUpdateBook)
-	apiV1Groups.GET("/:bookId", v1.GetBook)
+	apiV1BooksGroup := apiV1.Group("/books")
+	apiV1BooksGroup.POST("/", middleware.UseRequestBody(), v1.CreateOrUpdateBook)
+	apiV1BooksGroup.GET("/:bookId", v1.GetBook)
+
+	// Operations route
+	apiV1OperationsGroup := apiV1.Group("/operations")
+	apiV1OperationsGroup.POST("/", middleware.UseRequestBody(), v1.PostOperation)
+	apiV1OperationsGroup.GET("/:operationId", v1.PostOperation)
 	// Jwt protected routes
 
 	apiV1.GET("/secured/test", middleware.JWT(), v1.TestAppStatus)

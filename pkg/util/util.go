@@ -3,8 +3,9 @@ package util
 import (
 	"encoding/json"
 	"fmt"
-	setting "general_ledger_golang/pkg/config"
 	"io"
+
+	setting "general_ledger_golang/pkg/config"
 )
 
 // Setup Initialize the util
@@ -49,5 +50,62 @@ func StructToJSON(m interface{}) map[string]interface{} {
 		fmt.Printf("Unable to convert model to Struct %+v", err)
 		return nil
 	}
+	return result
+}
+
+type CopyableMap map[string]interface{}
+type CopyableSlice []interface{}
+
+// DeepCopyMap will create a deep copy of the given map. The depth of this
+// copy is all-inclusive. Both maps and slices will be considered when
+// making the copy.
+func DeepCopyMap(m map[string]interface{}) map[string]interface{} {
+	result := map[string]interface{}{}
+
+	for k, v := range m {
+		// Handle maps
+		mapvalue, isMap := v.(map[string]interface{})
+		if isMap {
+			result[k] = DeepCopyMap(mapvalue)
+			continue
+		}
+
+		// Handle slices
+		sliceValue, isSlice := v.([]interface{})
+		if isSlice {
+			result[k] = DeepCopySlice(sliceValue)
+			continue
+		}
+
+		result[k] = v
+	}
+
+	return result
+}
+
+// DeepCopySlice will create a deep copy of this slice. The depth of this
+// copy is all-inclusive. Both maps and slices will be considered when
+// making the copy.
+func DeepCopySlice(s []interface{}) []interface{} {
+	var result []interface{}
+
+	for _, v := range s {
+		// Handle maps
+		mapvalue, isMap := v.(map[string]interface{})
+		if isMap {
+			result = append(result, DeepCopyMap(CopyableMap(mapvalue)))
+			continue
+		}
+
+		// Handle slices
+		sliceValue, isSlice := v.([]interface{})
+		if isSlice {
+			result = append(result, DeepCopySlice(CopyableSlice(sliceValue)))
+			continue
+		}
+
+		result = append(result, v)
+	}
+
 	return result
 }
