@@ -49,6 +49,7 @@ func (o *OperationService) ApplyOperation(op map[string]interface{}) (map[string
 
 	//tx := db.Begin() // starts the transaction
 	var newOp *models.Operation
+	var existingOp map[string]interface{}
 	var err error
 
 	deepCopiedOp := util.DeepCopyMap(op)
@@ -56,6 +57,16 @@ func (o *OperationService) ApplyOperation(op map[string]interface{}) (map[string
 		// do some database operations in the transaction (use 'tx' from this point, not 'db')
 		// apply operation with retries
 		op["status"] = string(models.OperationInit)
+		existingOp, err = o.GetOperation(op["memo"].(string), nil)
+
+		if err != nil {
+			return err
+		}
+
+		if existingOp != nil {
+			return nil
+		}
+
 		newOp, err = o.ApplyOperationWithRetries(op, tx, 0)
 		if err != nil {
 			return err
@@ -92,6 +103,10 @@ func (o *OperationService) ApplyOperation(op map[string]interface{}) (map[string
 
 	if err != nil {
 		return nil, err
+	}
+
+	if existingOp != nil {
+		return existingOp, nil
 	}
 
 	opInterface := util.StructToJSON(*newOp)
