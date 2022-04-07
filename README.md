@@ -35,3 +35,20 @@ Notes:
 1. Book Create/update method will create a book if the name of the book doesn't exist else it will update the book.
 2. It is the ledger client's responsibility to maintain uniqueness of the book. 
 3. To ensure uniqueness of the books for a given account holder, ledger client should create debit/credit books based on uuid-v1. 
+
+To manage different types of books (
+     Exclude these book ids from balance roll up table to ensure minimal performance bottlenecks
+     and ensure, we calculate company balances for time periods required. 
+     RevenueBook might need entry inside balance roll up, that is a discussion for another time.
+):
+
+1. CashBook: `bookID:1` This is the main company book from where money would be transferred. (It can go to -ve, and that will denote the total spending)
+2. RevenueBook: `bookID:2` (Any income earned, i.e, income from trade fees etc. should come here, and it can/should not go -ve.)
+3. ThirdPartyVendorBook: `bookID:3` (Any payment to 3rd party vendors should come here)
+4. ExpenseBook (LiabilityBook): `bookID:4` (any expense, i.e. buying laptop for employees, will look like a transaction from BookID:1 -> BookID:4)
+5. AssetBook: `bookID:5` This is assetBook, whichever asset Company decides to buy. (trx: BookID:1 -> BookID:5)
+6. TDSBook: `bookID:6` This is for storing the tds if we deduce any which we've to submit.
+7. IncomeTaxBook: `bookID:7` This is for storing the income tax company has to pay.
+
+So, End of the day, it will translate into ->
+`Total Asset = Ⲉ(Liability Books) + Ⲉ(Equity Books)`

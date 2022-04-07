@@ -1,12 +1,13 @@
 package logger
 
 import (
-	"general_ledger_golang/pkg/util"
 	"io"
 	"os"
 	"path"
 	"runtime"
 	"strconv"
+
+	"general_ledger_golang/pkg/util"
 
 	"github.com/sirupsen/logrus"
 )
@@ -17,7 +18,7 @@ func Setup() {
 	logger.SetOutput(getWriter())
 	layout := "2006-Jan-02T15:04:05.000Z"
 
-	if util.Contains(os.Getenv("APP_ENV"), []string{"prod", "production", "release"}) {
+	if util.Includes(os.Getenv("APP_ENV"), []interface{}{"prod", "production", "release"}) {
 		logger.Formatter = &logrus.JSONFormatter{
 			TimestampFormat:  layout,
 			PrettyPrint:      true,
@@ -35,13 +36,13 @@ func Setup() {
 }
 
 func getWriter() io.Writer {
-	APP_ENV := os.Getenv("APP_ENV")
+	appEnv := os.Getenv("APP_ENV")
 	file, err := os.OpenFile("application.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		logger.Errorf("Failed to open log file: %v", err)
 		return os.Stdout
 	}
-	if APP_ENV != "local" {
+	if appEnv != "local" {
 		return file
 	}
 	return os.Stdout

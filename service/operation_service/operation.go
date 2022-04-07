@@ -47,25 +47,25 @@ func (o *OperationService) PostOperation(op map[string]interface{}) (map[string]
 func (o *OperationService) ApplyOperation(op map[string]interface{}) (map[string]interface{}, error) {
 	db, _ := models.GetDB()
 
-	//tx := db.Begin() // starts the transaction
 	var newOp *models.Operation
-	var existingOp map[string]interface{}
-	var err error
+
+	existingOp, err := o.GetOperation(op["memo"].(string), nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if existingOp != nil {
+		return existingOp, nil
+	}
 
 	deepCopiedOp := util.DeepCopyMap(op)
+
 	err = db.Transaction(func(tx *gorm.DB) error {
 		// do some database operations in the transaction (use 'tx' from this point, not 'db')
 		// apply operation with retries
+		// return nil commits trx, return error will roll back transaction
 		op["status"] = string(models.OperationInit)
-		existingOp, err = o.GetOperation(op["memo"].(string), nil)
-
-		if err != nil {
-			return err
-		}
-
-		if existingOp != nil {
-			return nil
-		}
 
 		newOp, err = o.ApplyOperationWithRetries(op, tx, 0)
 		if err != nil {
@@ -76,18 +76,17 @@ func (o *OperationService) ApplyOperation(op map[string]interface{}) (map[string
 		fmt.Printf("Posting 2: %+v\n", deepCopiedOp["entries"])
 		postings := &models.Posting{}
 
-		r := postings.BulkCreatePosting(deepCopiedOp["entries"].([]interface{}), tx, newOp.Id, newOp.Metadata)
-		if r != nil {
-			return r
+		err = postings.BulkCreatePosting(deepCopiedOp["entries"].([]interface{}), tx, newOp.Id, newOp.Metadata)
+		if err != nil {
+			return err
 		}
-		//r := tx.Model(postings).Create(op["entries"])
-
-		//if r.Error != nil {
-		//	tx.Rollback()
-		//	return nil, r.Error
-		//}
 
 		// create Book balance here, if the balance goes below 0, then rollBack the trx. else proceed
+		bB := models.BookBalance{}
+		err = bB.ModifyBalance(deepCopiedOp)
+		if err != nil {
+			return err
+		}
 
 		newOp.Status = string(models.OperationApplied)
 		op["status"] = string(models.OperationApplied)
@@ -97,7 +96,7 @@ func (o *OperationService) ApplyOperation(op map[string]interface{}) (map[string
 		if err != nil {
 			return err
 		}
-		//tx.Commit() // commits the transaction
+
 		return nil // commits the transaction
 	})
 
@@ -105,14 +104,8 @@ func (o *OperationService) ApplyOperation(op map[string]interface{}) (map[string
 		return nil, err
 	}
 
-	if existingOp != nil {
-		return existingOp, nil
-	}
-
 	opInterface := util.StructToJSON(*newOp)
 	return opInterface, nil
-	// tx.Rollback() // rolls back the transaction
-	// return false, nil
 }
 func (o *OperationService) UpdateOperation(op map[string]interface{}, tx *gorm.DB) (map[string]interface{}, error) {
 	var db *gorm.DB

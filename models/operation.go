@@ -3,9 +3,14 @@ package models
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"reflect"
 
+	"github.com/go-playground/validator/v10"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
+
+	"general_ledger_golang/pkg/util"
 )
 
 type Status string
@@ -24,6 +29,63 @@ type Operation struct {
 	Status          string         `json:"status"`
 	RejectionReason string         `gorm:"index;column:rejectionReason" json:"rejectionReason"`
 	Metadata        datatypes.JSON `json:"metadata"`
+}
+
+func ValidatePostOperation(data map[string]interface{}) {
+	var myMapSlice []map[string]interface{}
+	entryRule := map[string]interface{}{
+		"bookId":  "required,min=1",
+		"assetId": "required,min=1",
+		"value":   "required,min=1",
+	}
+	myMapSlice = append(myMapSlice, entryRule)
+
+	rules := map[string]interface{}{
+		"type": "required,min=3,max=20",
+		"memo": "required,min=3",
+		//"entries":  entryRule,
+		"metadata": map[string]interface{}{},
+	}
+
+	v := validator.New()
+	errs := v.ValidateMap(data, rules)
+	resultErr := map[string]interface{}{}
+
+	for k, err := range errs {
+		resultErr[k] = err
+		fmt.Println("Error is: ", err)
+	}
+
+	if len(errs) > 0 {
+		data["valid"] = false
+		data["errors"] = resultErr
+		return
+	}
+
+	entries := data["entries"]
+
+	if reflect.TypeOf(entries).Kind() == reflect.Slice {
+		if reflect.TypeOf(entries).Elem().Kind() == reflect.Interface {
+			for _, entry := range entries.([]interface{}) {
+				e := v.ValidateMap(entry.(map[string]interface{}), entryRule)
+
+				fmt.Printf("Inside Errors: %+v\n", e)
+				util.Copy(errs, e, false)
+				fmt.Printf("After Copy Errors: %+v\n", errs)
+			}
+		}
+	}
+
+	if len(errs) < 1 {
+		return
+	}
+	data["valid"] = false
+	data["errors"] = errs
+
+	bs, _ := json.Marshal(errs)
+	fmt.Println("Final Errors String: ", string(bs))
+
+	return
 }
 
 func (o *Operation) GetOperation(memo string, tx *gorm.DB) (*Operation, error) {

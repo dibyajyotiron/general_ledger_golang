@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -16,16 +15,15 @@ import (
 
 func PostOperation(c *gin.Context) {
 	appGin := app.Gin{C: c}
-	reqBody := util.ParseReqBodyToMap(c.Request.Body)
+	reqBody := util.GetReqBodyFromCtx(c)
 
 	opType := reqBody["type"]
 	memo := reqBody["memo"]
 	entries := reqBody["entries"]
 	metadata := reqBody["metadata"]
 
-	x, _ := json.Marshal(reqBody)
-	fmt.Printf("Req Body: %+v", string(x))
-	fmt.Printf("Req Body Metadata Type: %+v", reflect.TypeOf(entries))
+	fmt.Printf("\nReq Body: %+v", reqBody)
+	fmt.Printf("\nReq Body Metadata Type: %+v", reflect.TypeOf(entries))
 
 	opMap := map[string]interface{}{
 		"type":     opType,
@@ -39,7 +37,10 @@ func PostOperation(c *gin.Context) {
 
 	if err != nil || foundOp == nil {
 		fmt.Printf("Creating Operation Failed, error: %+v", err)
-		appGin.Response(http.StatusInternalServerError, e.ERROR, map[string]interface{}{"message": "Creating operation resulted in error!"})
+		appGin.Response(http.StatusInternalServerError, e.ERROR, map[string]interface{}{
+			"message": "Creating operation resulted in error!",
+			"error":   err.Error(),
+		})
 		return
 	}
 

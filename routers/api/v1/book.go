@@ -3,13 +3,15 @@ package v1
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/datatypes"
+
 	"general_ledger_golang/models"
 	"general_ledger_golang/pkg/app"
 	"general_ledger_golang/pkg/e"
 	"general_ledger_golang/pkg/util"
-	"github.com/gin-gonic/gin"
-	"gorm.io/datatypes"
-	"net/http"
 )
 
 func GetBook(c *gin.Context) {
@@ -27,7 +29,7 @@ func GetBook(c *gin.Context) {
 
 func CreateOrUpdateBook(c *gin.Context) {
 	appGin := app.Gin{C: c}
-	reqBody := util.ParseReqBodyToMap(c.Request.Body)
+	reqBody := util.GetReqBodyFromCtx(c)
 
 	if reqBody == nil {
 		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, map[string]interface{}{"error": "Missing request body or not a valid json!"})

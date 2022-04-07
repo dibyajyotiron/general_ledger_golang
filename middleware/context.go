@@ -16,7 +16,7 @@ func UseRequestBody() gin.HandlerFunc {
 		}
 		// Restore the io.ReadCloser to its original state
 		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
-
+		c.Set("requestBodyBytes", bodyBytes)
 		c.Next()
 		return
 	}

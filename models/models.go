@@ -45,9 +45,19 @@ func Setup() {
 		log.Fatalf("models.Setup err: %v", err)
 	}
 
-	if err = db.AutoMigrate(&Book{}, &Operation{}, &Posting{}); err != nil {
-		fmt.Printf("%+v", err)
-		panic(err)
+	if err = db.AutoMigrate(&Book{}, &Operation{}, &Posting{}, &BookBalance{}); err != nil {
+		log.Fatalf("Automigration failed, error: %+v", err) // fataF is printf followed by panic
+	}
+
+	hasConstraint := db.Migrator().HasConstraint(&BookBalance{}, "non_negative_balance")
+
+	if hasConstraint == false {
+		// create this constraint only if it doesn't exist, if any modification needed,
+		// drop and create the constraint as postgres doesn't have update constraint provision.
+		err = db.Migrator().CreateConstraint(&BookBalance{}, "non_negative_balance")
+		if err != nil {
+			log.Fatalf("non_negative_balance check constraint add failed, error: %+v", err)
+		}
 	}
 
 	sqlDB, err = db.DB()

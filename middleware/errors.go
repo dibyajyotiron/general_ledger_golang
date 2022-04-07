@@ -1,9 +1,10 @@
 package middleware
 
 import (
+	"net/http"
+
 	"general_ledger_golang/pkg/app"
 	"general_ledger_golang/pkg/e"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,6 +18,13 @@ func ErrorHandler(c *gin.Context, recovered interface{}) {
 			e.ERROR,
 			err,
 		)
+		return
 	}
-	c.AbortWithStatus(http.StatusInternalServerError)
+	appG.Response(
+		http.StatusInternalServerError,
+		e.ERROR,
+		"Something Went Wrong...",
+	)
+	c.Abort()
+	return
 }

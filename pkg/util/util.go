@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/gin-gonic/gin"
+
 	setting "general_ledger_golang/pkg/config"
 )
 
@@ -13,7 +15,7 @@ func Setup() {
 	jwtSecret = []byte(setting.AppSetting.JwtSecret)
 }
 
-func Contains(e interface{}, s []string) bool {
+func Includes(e interface{}, s []interface{}) bool {
 	for _, a := range s {
 		if a == e {
 			return true
@@ -36,6 +38,20 @@ func ParseReqBodyToMap(reqBody io.ReadCloser) map[string]interface{} {
 
 	if err != nil {
 		fmt.Printf("Req.Body parsing failed inside UseRequestBody, error: %+v", err)
+		return nil
+	}
+
+	return x
+}
+
+func GetReqBodyFromCtx(c *gin.Context) map[string]interface{} {
+	x := map[string]interface{}{}
+
+	bodyBytes := c.MustGet("requestBodyBytes")
+	err := json.Unmarshal(bodyBytes.([]byte), &x)
+
+	if err != nil {
+		fmt.Printf("Req.Body parsing failed inside GetReqBodyFromCtx, error: %+v\n", err)
 		return nil
 	}
 
@@ -108,4 +124,24 @@ func DeepCopySlice(s []interface{}) []interface{} {
 	}
 
 	return result
+}
+
+// Copy copies all key/value pairs in src adding them to dst.
+// When a key in src is already present in dst,
+// The value in dst will be overwritten by the value associated
+// with the key in src if `shouldReplace` is true.
+func Copy(dest, src map[string]interface{}, shouldReplace bool) {
+	for k, v := range src {
+		if shouldReplace {
+			dest[k] = v
+		} else {
+			var vS []interface{}
+			if dest[k] != nil {
+				vS = append(vS, v)
+				dest[k] = vS
+			} else {
+				dest[k] = v
+			}
+		}
+	}
 }

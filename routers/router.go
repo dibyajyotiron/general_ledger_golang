@@ -2,6 +2,7 @@ package routers
 
 import (
 	"general_ledger_golang/middleware"
+	"general_ledger_golang/models"
 	v1 "general_ledger_golang/routers/api/v1"
 
 	"github.com/gin-gonic/gin"
@@ -33,7 +34,7 @@ func InitRouter() *gin.Engine {
 
 	// Operations route
 	apiV1OperationsGroup := apiV1.Group("/operations")
-	apiV1OperationsGroup.POST("/", middleware.UseRequestBody(), v1.PostOperation)
+	apiV1OperationsGroup.POST("/", middleware.UseRequestBody(), middleware.ReqBodySanitizer(models.ValidatePostOperation), v1.PostOperation)
 	apiV1OperationsGroup.GET("/:operationId", v1.PostOperation)
 	// Jwt protected routes
 
