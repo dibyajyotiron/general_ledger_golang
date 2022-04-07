@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,7 +12,6 @@ import (
 func ReqBodySanitizer(validateFunc func(map[string]interface{})) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		reqBody := util.GetReqBodyFromCtx(c)
-		fmt.Printf("\n%v", reqBody)
 		validateReqBody := util.DeepCopyMap(reqBody)
 
 		validateFunc(validateReqBody)

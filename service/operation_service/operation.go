@@ -2,7 +2,6 @@ package operation_service
 
 import (
 	"fmt"
-	"reflect"
 	"time"
 
 	"gorm.io/gorm"
@@ -59,6 +58,8 @@ func (o *OperationService) ApplyOperation(op map[string]interface{}) (map[string
 		return existingOp, nil
 	}
 
+	// validate bookIds from posting entries.
+
 	deepCopiedOp := util.DeepCopyMap(op)
 
 	err = db.Transaction(func(tx *gorm.DB) error {
@@ -72,8 +73,6 @@ func (o *OperationService) ApplyOperation(op map[string]interface{}) (map[string
 			return err
 		}
 
-		fmt.Printf("Posting: %v\n", reflect.TypeOf(deepCopiedOp["entries"]))
-		fmt.Printf("Posting 2: %+v\n", deepCopiedOp["entries"])
 		postings := &models.Posting{}
 
 		err = postings.BulkCreatePosting(deepCopiedOp["entries"].([]interface{}), tx, newOp.Id, newOp.Metadata)

@@ -68,10 +68,7 @@ func ValidatePostOperation(data map[string]interface{}) {
 		if reflect.TypeOf(entries).Elem().Kind() == reflect.Interface {
 			for _, entry := range entries.([]interface{}) {
 				e := v.ValidateMap(entry.(map[string]interface{}), entryRule)
-
-				fmt.Printf("Inside Errors: %+v\n", e)
 				util.Copy(errs, e, false)
-				fmt.Printf("After Copy Errors: %+v\n", errs)
 			}
 		}
 	}

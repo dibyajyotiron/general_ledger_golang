@@ -1,8 +1,6 @@
 package models
 
 import (
-	"fmt"
-	"reflect"
 	"strconv"
 
 	"gorm.io/datatypes"
@@ -19,7 +17,7 @@ type Posting struct {
 }
 
 // BulkCreatePosting will create posting entries as a bulk from given slice of maps.
-// Conds will have "operationId" first, then "metadata" added to it.
+// Conds will have "operationId" first, then "metadata" added to it. Any other field inside conds is ignored.
 func (p *Posting) BulkCreatePosting(postings []interface{}, tx *gorm.DB, conds ...interface{}) error {
 	// operations are idempotent
 	var d *gorm.DB
@@ -43,8 +41,6 @@ func (p *Posting) BulkCreatePosting(postings []interface{}, tx *gorm.DB, conds .
 		if conds[1] != nil {
 			metadata = conds[1]
 		}
-
-		fmt.Printf("opId: %v, metadata: %v", reflect.TypeOf(operationId), metadata)
 
 		postingsSlice = append(postingsSlice, Posting{
 			OperationId: strconv.Itoa(int(operationId.(uint64))),

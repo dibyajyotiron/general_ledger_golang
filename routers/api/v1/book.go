@@ -44,7 +44,7 @@ func CreateOrUpdateBook(c *gin.Context) {
 	err := result.Error
 
 	if err != nil {
-		fmt.Printf("%+v", err)
+		fmt.Printf("Book creation failed: %+v", err)
 		appGin.Response(http.StatusInternalServerError, e.INVALID_PARAMS, map[string]interface{}{"error": err.Error()})
 		return
 	}

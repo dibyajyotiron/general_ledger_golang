@@ -12,20 +12,19 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var logger = logrus.New()
+var Logger = logrus.New()
 
 func Setup() {
-	logger.SetOutput(getWriter())
+	Logger.SetOutput(getWriter())
 	layout := "2006-Jan-02T15:04:05.000Z"
 
 	if util.Includes(os.Getenv("APP_ENV"), []interface{}{"prod", "production", "release"}) {
-		logger.Formatter = &logrus.JSONFormatter{
-			TimestampFormat:  layout,
-			PrettyPrint:      true,
-			CallerPrettyfier: CallerPrettyfier,
+		Logger.Formatter = &logrus.JSONFormatter{
+			TimestampFormat: layout,
+			PrettyPrint:     true,
 		}
 	} else {
-		logger.Formatter = &logrus.TextFormatter{
+		Logger.Formatter = &logrus.TextFormatter{
 			FullTimestamp:             true,
 			TimestampFormat:           layout,
 			ForceColors:               true,
@@ -36,10 +35,17 @@ func Setup() {
 }
 
 func getWriter() io.Writer {
+	writeToFile, notSet := os.LookupEnv("WRITE_LOG_TO_FILE")
+	writeToFileFlag, _ := strconv.ParseBool(writeToFile)
+
+	if notSet || writeToFileFlag == false {
+		return os.Stdout
+	}
+
 	appEnv := os.Getenv("APP_ENV")
 	file, err := os.OpenFile("application.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		logger.Errorf("Failed to open log file: %v", err)
+		Logger.Errorf("Failed to open log file: %v", err)
 		return os.Stdout
 	}
 	if appEnv != "local" {

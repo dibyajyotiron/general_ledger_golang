@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"strings"
 
 	"gorm.io/gorm"
 
+	"general_ledger_golang/pkg/logger"
 	"general_ledger_golang/pkg/logging"
 	"general_ledger_golang/pkg/util"
 )
@@ -53,7 +55,14 @@ func (bB *BookBalance) ModifyBalance(operation map[string]interface{}) error {
 			for _, param := range params {
 				t := db.Exec(query, param...)
 				if t.Error != nil {
-					logging.Error("DB error:", t.Error.Error())
+					log := logger.Logger
+					log.WithFields(map[string]interface{}{
+						"q": map[string]interface{}{
+							"query": strings.ReplaceAll(strings.ReplaceAll(query, "\t", " "), "\n", " "),
+							"vars":  param,
+						},
+					}).Errorf("DB error, %+v", t.Error)
+
 					return errors.New(t.Error.Error())
 				}
 			}
@@ -82,7 +91,6 @@ func generateUpsertCteQuery(entries []interface{}, metadata map[string]interface
 		updateQ := `
 				UPDATE book_balances
 					SET
-					-- balance = book_balances.balance + '',
 					balance = ?,
 					"updatedAt" = NOW()::timestamp
 				WHERE
@@ -91,7 +99,7 @@ func generateUpsertCteQuery(entries []interface{}, metadata map[string]interface
 					AND "operationType" = ?
 				RETURNING *
 			`
-		paramsSlice = append(paramsSlice, gorm.Expr("book_balances.balance::numeric + ?::numeric ", entry["value"]), entry["assetId"], entry["bookId"], operationType)
+		paramsSlice = append(paramsSlice, gorm.Expr("book_balances.balance + ?::numeric ", entry["value"]), entry["assetId"], entry["bookId"], operationType)
 
 		insertQ := `INSERT
 			INTO book_balances

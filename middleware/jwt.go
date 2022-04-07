@@ -20,7 +20,7 @@ func JWT() gin.HandlerFunc {
 		code = e.SUCCESS
 		token := c.GetHeader("X-Auth-Token")
 		if token == "" {
-			logger.Error("No Jwt Provided!")
+			logger.Logger.Error("No Jwt Provided!")
 			code = e.MISSING_AUTH_HEADER
 		} else {
 			_, err := util.ParseToken(token)

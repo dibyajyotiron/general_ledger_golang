@@ -1,14 +1,13 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"reflect"
 
 	"github.com/gin-gonic/gin"
 
 	"general_ledger_golang/pkg/app"
 	"general_ledger_golang/pkg/e"
+	"general_ledger_golang/pkg/logger"
 	"general_ledger_golang/pkg/util"
 	"general_ledger_golang/service/operation_service"
 )
@@ -22,9 +21,6 @@ func PostOperation(c *gin.Context) {
 	entries := reqBody["entries"]
 	metadata := reqBody["metadata"]
 
-	fmt.Printf("\nReq Body: %+v", reqBody)
-	fmt.Printf("\nReq Body Metadata Type: %+v", reflect.TypeOf(entries))
-
 	opMap := map[string]interface{}{
 		"type":     opType,
 		"memo":     memo,
@@ -36,7 +32,7 @@ func PostOperation(c *gin.Context) {
 	foundOp, err := opService.PostOperation(opMap)
 
 	if err != nil || foundOp == nil {
-		fmt.Printf("Creating Operation Failed, error: %+v", err)
+		logger.Logger.Errorf("Creating Operation Failed, error: %+v", err)
 		appGin.Response(http.StatusInternalServerError, e.ERROR, map[string]interface{}{
 			"message": "Creating operation resulted in error!",
 			"error":   err.Error(),

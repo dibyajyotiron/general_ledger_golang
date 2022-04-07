@@ -47,13 +47,17 @@ func main() {
 		MaxHeaderBytes: maxHeaderBytes,
 	}
 
-	err := srv.ListenAndServe()
+	done := make(chan bool)
+	go func() {
+		err := srv.ListenAndServe()
+		if err != nil {
+			logger.Logger.Errorf("Server Error: %v", err)
+			panic(err)
+		}
+	}()
 
-	if err != nil {
-		logger.Error("Server Error: #{err}")
-		panic(err)
-	}
+	logger.Logger.Infof("Actual pid is %d", syscall.Getpid())
+	logger.Logger.Infof("Http server listening on: %s", endPoint)
 
-	logger.Info("Actual pid is %d", syscall.Getpid())
-	logger.Info("Http server listening on: %s", endPoint)
+	<-done
 }

@@ -4,14 +4,13 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 
 	"general_ledger_golang/pkg/config"
+	"general_ledger_golang/pkg/logger"
 )
 
 var db *gorm.DB
@@ -36,22 +35,27 @@ func Setup() {
 	)
 	conf := &gorm.Config{}
 
-	if os.Getenv("APP_ENV") != "prod" {
-		conf.Logger = logger.Default.LogMode(logger.Info)
-	}
+	//newLogger := logger.New(
+	//	log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+	//	logger.Config{
+	//		SlowThreshold:             time.Millisecond * time.Duration(100), // Slow SQL threshold
+	//		LogLevel:                  logger.Info,                           // Log level
+	//		IgnoreRecordNotFoundError: false,                                 // Ignore ErrRecordNotFound error for logger
+	//		Colorful:                  false,                                 // Disable color
+	//	},
+	//)
+	//conf.Logger = newLogger
 
 	db, err = gorm.Open(postgres.Open(dsn), conf)
 	if err != nil {
-		log.Fatalf("models.Setup err: %v", err)
+		logger.Logger.Fatalf("models.Setup err: %v", err)
 	}
 
 	if err = db.AutoMigrate(&Book{}, &Operation{}, &Posting{}, &BookBalance{}); err != nil {
 		log.Fatalf("Automigration failed, error: %+v", err) // fataF is printf followed by panic
 	}
 
-	hasConstraint := db.Migrator().HasConstraint(&BookBalance{}, "non_negative_balance")
-
-	if hasConstraint == false {
+	if hasConstraint := db.Migrator().HasConstraint(&BookBalance{}, "non_negative_balance"); hasConstraint == false {
 		// create this constraint only if it doesn't exist, if any modification needed,
 		// drop and create the constraint as postgres doesn't have update constraint provision.
 		err = db.Migrator().CreateConstraint(&BookBalance{}, "non_negative_balance")
