@@ -35,7 +35,7 @@ func InitRouter() *gin.Engine {
 	// Operations route
 	apiV1OperationsGroup := apiV1.Group("/operations")
 	apiV1OperationsGroup.POST("/", middleware.UseRequestBody(), middleware.ReqBodySanitizer(models.ValidatePostOperation), v1.PostOperation)
-	apiV1OperationsGroup.GET("/:operationId", v1.PostOperation)
+	apiV1OperationsGroup.GET("/", v1.GetOperationByMemo)
 	// Jwt protected routes
 
 	apiV1.GET("/secured/test", middleware.JWT(), v1.TestAppStatus)

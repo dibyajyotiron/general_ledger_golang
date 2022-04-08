@@ -44,3 +44,38 @@ func PostOperation(c *gin.Context) {
 	appGin.Response(http.StatusOK, e.SUCCESS, map[string]interface{}{"operation": foundOp})
 	return
 }
+
+func GetOperationByMemo(c *gin.Context) {
+	appGin := app.Gin{C: c}
+
+	memo := c.Query("memo")
+
+	if memo == "" {
+		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, map[string]interface{}{
+			"message": "Memo is not provided!",
+		})
+		return
+	}
+
+	opService := &operation_service.OperationService{}
+	foundOp, err := opService.GetOperation(memo, nil)
+
+	if err != nil {
+		logger.Logger.Errorf("Fetching Operation Failed, error: %+v", err)
+		appGin.Response(http.StatusInternalServerError, e.ERROR, map[string]interface{}{
+			"message": "Fetching operation resulted in error!",
+		})
+		return
+	}
+
+	status := e.SUCCESS
+	httpStatus := http.StatusOK
+
+	if foundOp == nil {
+		status = e.NOT_EXIST
+		httpStatus = http.StatusNotFound
+	}
+	// return the operation
+	appGin.Response(httpStatus, status, map[string]interface{}{"operation": foundOp})
+	return
+}
