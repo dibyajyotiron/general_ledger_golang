@@ -6,8 +6,6 @@ import (
 	v1 "general_ledger_golang/routers/api/v1"
 
 	"github.com/gin-gonic/gin"
-
-	_ "general_ledger_golang/docs"
 )
 
 // InitRouter initialize routing information

@@ -1,7 +1,21 @@
-Server Documentation URL: https://documenter.getpostman.com/view/3985852/UVyxQtoR
+A very light-weight double accounting ledger, written in Go for best performance.
+Postgres is the database of choice here.
+
+Features:
+1. BookId 1 is always company cashbook.
+2. Double entry accounting, fast, stores book level balance by asset and operation.
+3. Asset agnostic, stocks,crypto... possibilities are endless.
+4. Can be extended for margin/leverage easily. 
+5. BookId based grouping, each user should have two books, block and main.
+6. No session or transaction level advisory locks or locks to ensure the highest throughput.
+7. Operation level grouping available. (op can be, LIMIT_ORDER, MARKET_ORDER)
+8. Different trade types i.e INTRA-DAY, QUARTERLY etc can be supported using the metadata. 
+
+Note: To get balance for a book, if operationType is not provided, OVERALL(operationType) balance is fetched.
+
+Api Doc: Check the collections folder, you'll see the postman.json. Import this collection in postman. Requests have examples.
 
 Project depends on .env files, in production if used with ecs, make sure to create dotenv and store it inside s3 or pass all the variables to task definition.
-
 
 To pass .env file entirely, This below part should be with the ecs task definition ->
 ```
@@ -55,3 +69,11 @@ To manage different types of books (
 
 So, End of the day, it will translate into ->
 `Total Asset = Ⲉ(Liability Books) + Ⲉ(Equity Books)`
+
+TODO:
+1. Test cases.
+2. Example Ledger Client implementation to manage the ledger of a crypto trading org.
+3. Customisable bookIds, based on type (asset or liability).
+4. reserve top 100 bookIds for company books.
+5. Better file naming, code cleanup.
+6. BookId validation while creating operation.

@@ -182,12 +182,11 @@ func (bB *BookBalance) GetBalance(bookId, assetId, operationType string, tx *gor
 		query.Where(BookBalance{OperationType: OverallOperation})
 	}
 
-	t := query.Debug().Select("bookId", "assetId", "balance", "operationType").Find(&balance)
+	t := query.Select("bookId", "assetId", "balance", "operationType").Find(&balance)
 
 	if t.RowsAffected < 1 {
 		return nil, nil
 	}
 
-	fmt.Printf("%v", balance)
 	return &balance, nil
 }
