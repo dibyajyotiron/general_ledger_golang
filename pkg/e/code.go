@@ -3,6 +3,7 @@ package e
 const (
 	SUCCESS             = 200
 	INVALID_PARAMS      = 400
+	BAD_REQUEST         = 400
 	MISSING_AUTH_HEADER = 401
 	NOT_EXIST           = 404
 	ERROR               = 500

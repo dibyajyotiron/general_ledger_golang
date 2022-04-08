@@ -2,16 +2,15 @@ package models
 
 import (
 	"errors"
-	"general_ledger_golang/pkg/util"
+
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
 type Book struct {
 	Model
-	Name         string         `gorm:"index;unique" json:"name"`
-	Metadata     datatypes.JSON `json:"metadata"`
-	Restrictions datatypes.JSON `json:"restrictions"`
+	Name     string         `gorm:"index;unique" json:"name"`
+	Metadata datatypes.JSON `json:"metadata"`
 }
 
 func (b *Book) CreateOrUpdateBook(book *Book) (*gorm.DB, string) {
@@ -22,12 +21,19 @@ func (b *Book) CreateOrUpdateBook(book *Book) (*gorm.DB, string) {
 	return updateResult, "update"
 }
 
-func (b *Book) GetBook(bookId string) *map[string]interface{} {
+func (b *Book) GetBook(bookId string) (*Book, error) {
 	book := Book{}
-	res := db.Model(&b).Where("id = ?", bookId).Last(&book)
+	q := db.Model(&b).Where("id = ?", bookId)
+
+	res := q.Select("id", "name", "metadata", `createdAt`, `updatedAt`).Find(&book)
 	if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-		return nil
+		return nil, nil
 	}
-	result := util.StructToJSON(book)
-	return &result
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, nil
+	}
+	return &book, nil
 }

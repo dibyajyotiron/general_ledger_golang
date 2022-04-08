@@ -156,3 +156,38 @@ func (bB *BookBalance) sortEntries(entries []interface{}) {
 		return sortByBookId
 	})
 }
+
+// GetBalance fetches the balance
+func (bB *BookBalance) GetBalance(bookId, assetId, operationType string, tx *gorm.DB) (*[]BookBalance, error) {
+	var d *gorm.DB
+	if bookId == "" {
+		return nil, errors.New("BookId is missing")
+	}
+	if tx != nil {
+		d = tx
+	} else {
+		d = db
+	}
+	var balance []BookBalance
+	//err := db.Select("id").Where(Auth{Username: username, Password: password}).First(&auth).Error
+	query := d.Where(BookBalance{BookId: bookId})
+
+	if assetId != "" {
+		query.Where(BookBalance{AssetId: assetId})
+	}
+
+	if operationType != "" {
+		query.Where(BookBalance{OperationType: operationType})
+	} else {
+		query.Where(BookBalance{OperationType: OverallOperation})
+	}
+
+	t := query.Debug().Select("bookId", "assetId", "balance", "operationType").Find(&balance)
+
+	if t.RowsAffected < 1 {
+		return nil, nil
+	}
+
+	fmt.Printf("%v", balance)
+	return &balance, nil
+}

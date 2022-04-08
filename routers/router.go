@@ -31,6 +31,7 @@ func InitRouter() *gin.Engine {
 	apiV1BooksGroup := apiV1.Group("/books")
 	apiV1BooksGroup.POST("/", middleware.UseRequestBody(), v1.CreateOrUpdateBook)
 	apiV1BooksGroup.GET("/:bookId", v1.GetBook)
+	apiV1BooksGroup.GET("/:bookId/balance", v1.GetBookBalance)
 
 	// Operations route
 	apiV1OperationsGroup := apiV1.Group("/operations")

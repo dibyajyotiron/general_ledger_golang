@@ -1,6 +1,9 @@
-Peoject depends on .env files, in production if used with ecs, make sure to create dotenv and store it inside s3.
+Server Documentation URL: https://documenter.getpostman.com/view/3985852/UVyxQtoR
 
-This below part should be with the ecs task definition ->
+Project depends on .env files, in production if used with ecs, make sure to create dotenv and store it inside s3 or pass all the variables to task definition.
+
+
+To pass .env file entirely, This below part should be with the ecs task definition ->
 ```
 "environmentFiles": [
   {
