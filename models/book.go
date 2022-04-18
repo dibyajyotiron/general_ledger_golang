@@ -37,3 +37,28 @@ func (b *Book) GetBook(bookId string) (*Book, error) {
 	}
 	return &book, nil
 }
+
+func (b *Book) GetBooks(bookIds []string, tx *gorm.DB) (*[]Book, error) {
+	var books []Book
+	var d *gorm.DB
+
+	if tx != nil {
+		d = tx
+	} else {
+		d = db
+	}
+
+	q := d.Model(&b).Where("id IN ?", bookIds)
+
+	res := q.Select("id", "name", "metadata", `createdAt`, `updatedAt`).Find(&books)
+	if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, nil
+	}
+	return &books, nil
+}

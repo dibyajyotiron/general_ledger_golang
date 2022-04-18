@@ -2,12 +2,15 @@ package operation_service
 
 import (
 	"fmt"
+	"reflect"
 	"time"
 
+	"github.com/thoas/go-funk"
 	"gorm.io/gorm"
 
 	"general_ledger_golang/models"
 	"general_ledger_golang/pkg/util"
+	"general_ledger_golang/service/book_service"
 )
 
 type OperationService struct {
@@ -57,8 +60,10 @@ func (o *OperationService) ApplyOperation(op map[string]interface{}) (map[string
 	if existingOp != nil {
 		return existingOp, nil
 	}
+	bS := book_service.BookService{}
 
-	// validate bookIds from posting entries.
+	// TODO: Maybe create rejected status in case of non_negative_balance as well, to have a better insight.
+	// This memo will not be further tried, as ledger is meant to be idempotent, a new memo should be created with correct bookIds.
 
 	deepCopiedOp := util.DeepCopyMap(op)
 
@@ -68,9 +73,33 @@ func (o *OperationService) ApplyOperation(op map[string]interface{}) (map[string
 		// return nil commits trx, return error will roll back transaction
 		op["status"] = string(models.OperationInit)
 
-		newOp, err = o.ApplyOperationWithRetries(op, tx, 0)
+		newOp, err = o.applyOperationWithRetries(op, tx, 0)
 		if err != nil {
 			return err
+		}
+
+		bookIds := funk.Map(deepCopiedOp["entries"], func(entry interface{}) string {
+			e := entry.(map[string]interface{})
+			id := e["bookId"]
+			if reflect.TypeOf(id).Kind() != reflect.String {
+				return ""
+			}
+			return id.(string)
+		})
+		ok, e := bS.CheckBookExists(bookIds.([]string), tx)
+
+		if !ok {
+			op["status"] = string(models.OperationRejected)
+			op["rejectionReason"] = e.Error()
+			_, err = o.UpdateOperation(op, tx)
+			// update newOp as that will get returned to the user.
+			newOp.Status = string(models.OperationRejected)
+			newOp.RejectionReason = e.Error()
+			if err != nil {
+				return err
+			}
+			// return nil to create rejected operation
+			return nil
 		}
 
 		postings := &models.Posting{}
@@ -81,8 +110,7 @@ func (o *OperationService) ApplyOperation(op map[string]interface{}) (map[string
 		}
 
 		// create Book balance here, if the balance goes below 0, then rollBack the trx. else proceed
-		bB := models.BookBalance{}
-		err = bB.ModifyBalance(deepCopiedOp)
+		err = bS.BookBalanceRepository.ModifyBalance(deepCopiedOp)
 		if err != nil {
 			return err
 		}
@@ -116,14 +144,14 @@ func (o *OperationService) UpdateOperation(op map[string]interface{}, tx *gorm.D
 	}
 
 	// update operation
-	r := db.Model(&o.OperationRepository).Updates(op).Where("memo = ?", op["memo"])
+	r := db.Model(&o.OperationRepository).Where("memo = ?", op["memo"]).Updates(op)
 	if r.Error != nil {
 		return nil, r.Error
 	}
 	return op, nil
 }
 
-func (o *OperationService) ApplyOperationWithRetries(op map[string]interface{}, tx *gorm.DB, rC int) (*models.Operation, error) {
+func (o *OperationService) applyOperationWithRetries(op map[string]interface{}, tx *gorm.DB, rC int) (*models.Operation, error) {
 	newOp, err := o.OperationRepository.CreateOperation(op, tx)
 	totalRetryCount, currRetryCount := rC, 0
 

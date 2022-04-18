@@ -47,7 +47,7 @@ func main() {
 		MaxHeaderBytes: maxHeaderBytes,
 	}
 
-	done := make(chan bool)
+	serverCreationDone := make(chan bool)
 	go func() {
 		err := srv.ListenAndServe()
 		if err != nil {
@@ -59,5 +59,5 @@ func main() {
 	logger.Logger.Infof("Actual pid is %d", syscall.Getpid())
 	logger.Logger.Infof("Http server listening on: %s", endPoint)
 
-	<-done
+	<-serverCreationDone
 }

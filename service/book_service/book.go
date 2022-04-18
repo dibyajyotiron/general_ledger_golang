@@ -37,6 +37,28 @@ func (b *BookService) GetBook(bookId string, withBalance bool) (map[string]inter
 	return result, nil
 }
 
+func (b *BookService) GetBooks(bookIds []string, tx *gorm.DB) ([]map[string]interface{}, error) {
+	if len(bookIds) < 1 {
+		return nil, errors.New("BookIds length is empty")
+	}
+	books, err := b.BookRepository.GetBooks(bookIds, tx)
+	if err != nil {
+		return nil, err
+	}
+	if books == nil {
+		return nil, nil
+	}
+
+	var result []map[string]interface{}
+	//result := util.StructToJSON(books)
+
+	for _, book := range *books {
+		result = append(result, util.StructToJSON(book))
+	}
+
+	return result, nil
+}
+
 func (b *BookService) GetBalance(bookId, assetId, operationType string, tx *gorm.DB) (map[string]interface{}, error) {
 	balances, err := b.BookBalanceRepository.GetBalance(bookId, assetId, operationType, tx)
 	// If error, return error
@@ -63,4 +85,24 @@ func (b *BookService) GetBalance(bookId, assetId, operationType string, tx *gorm
 	}
 	// else, return (empty map, nil) if no error and no balance is found.
 	return map[string]interface{}{}, nil
+}
+
+func (b *BookService) CheckBookExists(bookIds []string, tx *gorm.DB) (bool, error) {
+	bookIdsProvided := len(bookIds)
+
+	books, err := b.GetBooks(bookIds, tx)
+
+	if err != nil {
+		return false, err
+	}
+
+	if len(books) < 1 {
+		return false, errors.New("books with provided ids don't exist")
+	}
+
+	if bookIdsProvided != len(books) {
+		return false, errors.New("some bookIds couldn't be found")
+	}
+
+	return true, nil
 }
