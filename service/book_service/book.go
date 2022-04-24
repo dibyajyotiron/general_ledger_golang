@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strconv"
 
+	"github.com/thoas/go-funk"
 	"gorm.io/gorm"
 
 	"general_ledger_golang/models"
@@ -87,7 +88,8 @@ func (b *BookService) GetBalance(bookId, assetId, operationType string, tx *gorm
 	return map[string]interface{}{}, nil
 }
 
-func (b *BookService) CheckBookExists(bookIds []string, tx *gorm.DB) (bool, error) {
+func (b *BookService) CheckBookExists(nUniqBookIds []string, tx *gorm.DB) (bool, error) {
+	bookIds := funk.UniqString(nUniqBookIds)
 	bookIdsProvided := len(bookIds)
 
 	books, err := b.GetBooks(bookIds, tx)

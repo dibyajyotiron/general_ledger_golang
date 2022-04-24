@@ -14,6 +14,8 @@ import (
 
 var Logger = logrus.New()
 
+type Fields map[string]interface{}
+
 func Setup() {
 	Logger.SetOutput(getWriter())
 	layout := "2006-Jan-02T15:04:05.000Z"

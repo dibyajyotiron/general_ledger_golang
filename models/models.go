@@ -4,13 +4,16 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	gLogger "gorm.io/gorm/logger"
 
 	"general_ledger_golang/pkg/config"
 	"general_ledger_golang/pkg/logger"
+	"general_ledger_golang/pkg/util"
 )
 
 var db *gorm.DB
@@ -35,16 +38,19 @@ func Setup() {
 	)
 	conf := &gorm.Config{}
 
-	//newLogger := logger.New(
-	//	log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-	//	logger.Config{
-	//		SlowThreshold:             time.Millisecond * time.Duration(100), // Slow SQL threshold
-	//		LogLevel:                  logger.Info,                           // Log level
-	//		IgnoreRecordNotFoundError: false,                                 // Ignore ErrRecordNotFound error for logger
-	//		Colorful:                  false,                                 // Disable color
-	//	},
-	//)
-	//conf.Logger = newLogger
+	// Log the queries if environment is not prod
+	if !util.Includes(os.Getenv("APP_ENV"), []interface{}{"prod", "production", "release"}) {
+		newLogger := gLogger.New(
+			log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+			gLogger.Config{
+				SlowThreshold:             time.Millisecond * time.Duration(100), // Slow SQL threshold
+				LogLevel:                  gLogger.Info,                          // Log level
+				IgnoreRecordNotFoundError: false,                                 // Ignore ErrRecordNotFound error for logger
+				Colorful:                  false,                                 // Disable color
+			},
+		)
+		conf.Logger = newLogger
+	}
 
 	db, err = gorm.Open(postgres.Open(dsn), conf)
 	if err != nil {

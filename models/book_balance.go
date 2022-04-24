@@ -26,7 +26,7 @@ const (
 	OverallOperation string = "OVERALL"
 )
 
-func (bB *BookBalance) ModifyBalance(operation map[string]interface{}) error {
+func (bB *BookBalance) ModifyBalance(operation map[string]interface{}, db *gorm.DB) error {
 	genericOp := util.DeepCopyMap(operation)
 
 	overallOp := util.DeepCopyMap(operation)
@@ -45,7 +45,9 @@ func (bB *BookBalance) ModifyBalance(operation map[string]interface{}) error {
 		bB.sortEntries(entries)
 
 		// create the queries by looping over the entries
-		queryList, params, err := generateUpsertCteQuery(entries, metadata)
+		// note: Bulk upsert won't work here. for book_balance, there can be one bookId already present in book_balance
+		// but the other one is not, so both will need to change. for one, it's insert and the other one it's update.
+		queryList, params, err := GenerateUpsertCteQuery(entries, metadata)
 		if err != nil {
 			return err
 		}
@@ -72,10 +74,96 @@ func (bB *BookBalance) ModifyBalance(operation map[string]interface{}) error {
 	return nil
 }
 
-func generateUpsertCteQuery(entries []interface{}, metadata map[string]interface{}) ([]string, [][]interface{}, error) {
-	var queryList []string
-	var params [][]interface{}
+// GenerateBulkUpsertQuery will generate a single bulkUpsert query
+func GenerateBulkUpsertQuery(entries []interface{}, metadata map[string]interface{}) (query string, params []interface{}, errs error) {
+	var bookIds []string
+	var assetIds []string
+	var operationTypes []string
+	var values []string
 
+	bulkInsertQ := `INSERT INTO book_balances 
+				(
+					"assetId", 
+					"bookId", 
+					"operationType", 
+					"balance", 
+					"createdAt", 
+					"updatedAt" 
+				) 
+			SELECT 
+				unnest(string_to_array(?, ',')),
+				unnest(string_to_array(?, ',')),
+				unnest(string_to_array(?, ',')),
+				unnest(string_to_array(?, ',')::numeric[]),
+				NOW()::timestamp, 
+				NOW()::timestamp `
+	updateQ := `UPDATE book_balances 
+					SET balance = book_balances.balance + data_table.value::numeric, 
+					"updatedAt" = NOW()::timestamp 
+				FROM 
+					( 
+						SELECT unnest(string_to_array(?, ',')) as "assetId",
+								unnest(string_to_array(?, ',')) as "bookId", 
+								unnest(string_to_array(?, ',')) as "operationType", 
+								unnest(string_to_array(?, ',')::numeric[]) as value 
+					) as data_table 
+				WHERE
+					book_balances."assetId" = data_table."assetId" 
+					AND book_balances."bookId" = data_table."bookId" 
+					AND book_balances."operationType" = data_table."operationType" 
+				RETURNING *`
+
+	cteQ := fmt.Sprintf(`
+			WITH upsert AS (
+                        %s
+			)
+			%s
+			WHERE NOT EXISTS(
+				SELECT * FROM upsert
+			);
+			`, updateQ, bulkInsertQ)
+	var errList []string
+	for _, entry2 := range entries {
+		entry := entry2.(map[string]interface{})
+
+		if util.Includes(entry["bookId"], []interface{}{1, -1, "1", "-1"}) {
+			continue
+		}
+
+		operationType := metadata["operation"]
+
+		if operationType == nil {
+			return "", nil, errors.New("operation is not present inside metadata, creation of book balance depends on metadata[\"operation\"], please send metadata with operation")
+		}
+		//valueAsF64, parseFloatErr := strconv.ParseFloat(entry["value"].(string), 64)
+		//
+		//if parseFloatErr != nil {
+		//	errList = append(errList, parseFloatErr.Error())
+		//}
+
+		bookIds = append(bookIds, entry["bookId"].(string))
+		assetIds = append(assetIds, entry["assetId"].(string))
+		values = append(values, entry["value"].(string))
+		operationTypes = append(operationTypes, operationType.(string))
+	}
+	if len(errList) > 0 {
+		return "", nil, errors.New(strings.Join(errList, ""))
+	}
+	params = append(params,
+		strings.Join(assetIds, ","),
+		strings.Join(bookIds, ","),
+		strings.Join(operationTypes, ","),
+		strings.Join(values, ","),
+		strings.Join(assetIds, ","),
+		strings.Join(bookIds, ","),
+		strings.Join(operationTypes, ","),
+		strings.Join(values, ","),
+	)
+	return cteQ, params, nil
+}
+
+// GenerateUpsertCteQuery will generate multiple upsert queries
+func GenerateUpsertCteQuery(entries []interface{}, metadata map[string]interface{}) (queryList []string, params [][]interface{}, err error) {
 	for _, entry2 := range entries {
 		entry := entry2.(map[string]interface{})
 		var paramsSlice []interface{}

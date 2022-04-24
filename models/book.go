@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 
+	"github.com/thoas/go-funk"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -47,8 +48,8 @@ func (b *Book) GetBooks(bookIds []string, tx *gorm.DB) (*[]Book, error) {
 	} else {
 		d = db
 	}
-
-	q := d.Model(&b).Where("id IN ?", bookIds)
+	bookIdsUnique := funk.UniqString(bookIds)
+	q := d.Model(&b).Where("id IN ?", bookIdsUnique)
 
 	res := q.Select("id", "name", "metadata", `createdAt`, `updatedAt`).Find(&books)
 	if errors.Is(res.Error, gorm.ErrRecordNotFound) {

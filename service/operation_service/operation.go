@@ -34,6 +34,7 @@ func (o *OperationService) GetOperation(memo string, tx *gorm.DB) (map[string]in
 	return nil, nil
 }
 
+// PostOperation op-> {type: '', memo:'', entries: [{bookId: '', assetId: '', value: ''}], metadata: {}}
 func (o *OperationService) PostOperation(op map[string]interface{}) (map[string]interface{}, error) {
 	// This should call ApplyOperation
 	newOp, err := o.ApplyOperation(op)
@@ -110,7 +111,7 @@ func (o *OperationService) ApplyOperation(op map[string]interface{}) (map[string
 		}
 
 		// create Book balance here, if the balance goes below 0, then rollBack the trx. else proceed
-		err = bS.BookBalanceRepository.ModifyBalance(deepCopiedOp)
+		err = bS.BookBalanceRepository.ModifyBalance(deepCopiedOp, tx)
 		if err != nil {
 			return err
 		}

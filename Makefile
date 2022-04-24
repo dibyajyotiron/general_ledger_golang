@@ -2,6 +2,7 @@
 
 # Integration test location provided here
 INTEGRATION_TEST_PATH?=./tests/integration-test
+UNIT_TEST_PATH?=./tests/unit-test
 
 # set of env variables that you need for testing
 ENV_LOCAL_TEST=\
@@ -41,3 +42,8 @@ test.integration:
 test.integration.debug:
 	$(ENV_LOCAL_TEST) \
 	go test -tags=integration $(INTEGRATION_TEST_PATH) -count=1 -v -run=$(INTEGRATION_TEST_SUITE_PATH)
+
+# this command will trigger unit test with verbose mode
+test.unit.debug:
+	$(ENV_LOCAL_TEST) \
+	go test -tags=unit $(UNIT_TEST_PATH) -count=1 -v -run=$(UNIT_TEST_SUITE_PATH)

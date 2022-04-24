@@ -71,9 +71,9 @@ So, End of the day, it will translate into ->
 `Total Asset = Ⲉ(Liability Books) + Ⲉ(Equity Books)`
 
 TODO:
-1. Test cases.
-2. Example Ledger Client implementation to manage the ledger of a crypto trading org.
-3. Customisable bookIds, based on type (asset or liability).
-4. reserve top 100 bookIds for company books.
-5. Better file naming, code cleanup.
-6. BookId validation while creating operation.
+1. Test cases. (Integration test added, modification required)
+2. ~~BookId validation while creating operation.~~ (Done)
+3. Example Ledger Client implementation to manage the ledger of a crypto trading org.
+4. Customisable bookIds, based on type (asset or liability).
+5. Reserve top 100 bookIds for company books. Migration to partition the balances table, such that below 100 ids should get in a specific partition, remaining should be partitioned based on hash (.
+6. Better file naming, code cleanup.
