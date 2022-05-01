@@ -12,7 +12,8 @@ import (
 
 // Setup Initialize the util
 func Setup() {
-	jwtSecret = []byte(setting.AppSetting.JwtSecret)
+	cfg := *setting.GetConfig()
+	jwtSecret = []byte(cfg.AppSetting.JwtSecret)
 }
 
 func Includes(e interface{}, s []interface{}) bool {

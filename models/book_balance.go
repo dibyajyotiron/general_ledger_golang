@@ -3,14 +3,12 @@ package models
 import (
 	"errors"
 	"fmt"
-	"reflect"
 	"sort"
 	"strings"
 
 	"gorm.io/gorm"
 
 	"general_ledger_golang/pkg/logger"
-	"general_ledger_golang/pkg/logging"
 	"general_ledger_golang/pkg/util"
 )
 
@@ -39,7 +37,6 @@ func (bB *BookBalance) ModifyBalance(operation map[string]interface{}, db *gorm.
 
 	// sort the operation entries in place, everything is reference type, so sorting in-place works fine
 	for _, op := range operations {
-		logging.Info("Typeof entries: ", reflect.TypeOf(op["entries"]))
 		entries := op["entries"].([]interface{})
 		metadata := op["metadata"].(map[string]interface{})
 		bB.sortEntries(entries)

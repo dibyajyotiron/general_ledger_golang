@@ -7,9 +7,8 @@ import (
 	"runtime"
 	"strconv"
 
-	"general_ledger_golang/pkg/util"
-
 	"github.com/sirupsen/logrus"
+	"github.com/thoas/go-funk"
 )
 
 var Logger = logrus.New()
@@ -20,7 +19,7 @@ func Setup() {
 	Logger.SetOutput(getWriter())
 	layout := "2006-Jan-02T15:04:05.000Z"
 
-	if util.Includes(os.Getenv("APP_ENV"), []interface{}{"prod", "production", "release"}) {
+	if funk.ContainsString([]string{"prod", "production", "release"}, os.Getenv("APP_ENV")) {
 		Logger.Formatter = &logrus.JSONFormatter{
 			TimestampFormat: layout,
 			PrettyPrint:     true,

@@ -28,13 +28,15 @@ type Model struct {
 // Setup initializes the database instance
 func Setup() {
 	var err error
+	cfg := *config.GetConfig()
+
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s TimeZone=Asia/Shanghai",
-		config.DatabaseSetting.Host,
-		config.DatabaseSetting.Port,
-		config.DatabaseSetting.User,
-		config.DatabaseSetting.Password,
-		config.DatabaseSetting.Name,
-		config.DatabaseSetting.SSLMode,
+		cfg.DatabaseSetting.Host,
+		cfg.DatabaseSetting.Port,
+		cfg.DatabaseSetting.User,
+		cfg.DatabaseSetting.Password,
+		cfg.DatabaseSetting.Name,
+		cfg.DatabaseSetting.SSLMode,
 	)
 	conf := &gorm.Config{}
 

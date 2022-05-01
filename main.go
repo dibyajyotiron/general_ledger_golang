@@ -2,42 +2,49 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
+	"os"
 	"syscall"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+	"github.com/thoas/go-funk"
 
 	"general_ledger_golang/models"
 	"general_ledger_golang/pkg/config"
-	"general_ledger_golang/pkg/gredis"
 	"general_ledger_golang/pkg/logger"
-	"general_ledger_golang/pkg/logging"
 	"general_ledger_golang/pkg/util"
 	"general_ledger_golang/routers"
 )
 
 func init() {
-	config.Setup()
+	if funk.ContainsString([]string{"local", "localhost"}, os.Getenv("APP_ENV")) {
+		err := godotenv.Load()
+		logger.Logger.Info(".env Loaded")
+		if err != nil {
+			logger.Logger.Fatalf("Couldn't load .env for local development, error: %+v", err)
+		}
+	}
+	config.Setup("./pkg/config/")
 	models.Setup()
-	logging.Setup() // should deprecate
 	logger.Setup()
-	err := gredis.Setup()
+	//err := gredis.Setup()
 	util.Setup()
 
-	if err != nil {
-		log.Fatalln(err)
-	}
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
 }
 
 func main() {
-	gin.SetMode(config.ServerSetting.RunMode)
+	conf := config.GetConfig()
+	gin.SetMode(conf.ServerSetting.RunMode)
 
 	router := routers.InitRouter()
-	readTimeout := config.ServerSetting.ReadTimeout
-	writeTimeout := config.ServerSetting.WriteTimeout
-	endPoint := fmt.Sprintf("localhost:%d", config.ServerSetting.HttpPort) // endpoint should look like 'localhost:1234'
-	maxHeaderBytes := 1 << 24                                              // this is around 16 mb.
+	readTimeout := conf.ServerSetting.ReadTimeout
+	writeTimeout := conf.ServerSetting.WriteTimeout
+	endPoint := fmt.Sprintf("localhost:%d", conf.ServerSetting.HttpPort) // endpoint should look like 'localhost:1234'
+	maxHeaderBytes := 1 << 24                                            // this is around 16 mb.
 
 	srv := &http.Server{
 		Addr:           endPoint,

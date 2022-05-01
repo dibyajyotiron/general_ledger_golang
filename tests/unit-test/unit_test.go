@@ -1,12 +1,15 @@
 package unit_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
+	"github.com/joho/godotenv"
 	asrt "github.com/stretchr/testify/assert"
 
 	"general_ledger_golang/models"
+	"general_ledger_golang/pkg/config"
 	"general_ledger_golang/pkg/logger"
 )
 
@@ -54,4 +57,21 @@ func TestQueryGeneration(t *testing.T) {
 		logger.Logger.Printf("Query: %+v", strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.Join(q, "\n"), "\t", ""), "\n", ""), "\\", ""))
 		//logger.Logger.Printf("Params: %+v", p)
 	})
+}
+
+func TestConfig(t *testing.T) {
+	assert := asrt.New(t)
+	err := godotenv.Load("../../.env")
+	assert.Nil(err)
+
+	config.Setup("../../pkg/config/")
+	c := *config.GetConfig()
+
+	fmt.Printf("Config App: %+v\n", *c.AppSetting)
+	fmt.Printf("Config Server: %+v\n", *c.ServerSetting)
+	fmt.Printf("Config Redis: %+v\n", *c.RedisSetting)
+	fmt.Printf("Config Database: %+v\n", *c.DatabaseSetting)
+
+	assert.Equal(c.AppSetting.JwtSecret, "usx1957-213123123123-12312sa7687-23424")
+	assert.Equal(c.RedisSetting.Host, "127.0.0.1:6379")
 }

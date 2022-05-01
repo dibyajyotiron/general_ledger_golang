@@ -3,13 +3,13 @@ package app
 import (
 	"github.com/astaxie/beego/validation"
 
-	"general_ledger_golang/pkg/logging"
+	"general_ledger_golang/pkg/logger"
 )
 
 // MarkErrors logs error logs
 func MarkErrors(errors []*validation.Error) {
 	for _, err := range errors {
-		logging.Info(err.Key, err.Message)
+		logger.Logger.Info(err.Key, err.Message)
 	}
 
 	return

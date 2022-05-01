@@ -6,27 +6,13 @@ import (
 
 // App settings Section
 type App struct {
-	JwtSecret string
-	PageSize  int
-	PrefixUrl string
-
-	RuntimeRootPath string
-
-	ImageSavePath  string
-	ImageMaxSize   int
-	ImageAllowExts []string
-
-	ExportSavePath string
-	QrCodeSavePath string
-	FontSavePath   string
-
+	JwtSecret   string
+	PrefixUrl   string
 	LogSavePath string
 	LogSaveName string
 	LogFileExt  string
 	TimeFormat  string
 }
-
-var AppSetting = &App{}
 
 // Server settings Section
 type Server struct {
@@ -35,8 +21,6 @@ type Server struct {
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 }
-
-var ServerSetting = &Server{}
 
 // Database DB settings Section
 type Database struct {
@@ -48,18 +32,19 @@ type Database struct {
 	Name        string
 	TablePrefix string
 	SSLMode     string
-	ABC         string
 }
-
-var DatabaseSetting = &Database{}
 
 // Redis settings Section
 type Redis struct {
 	Host        string
-	Password    string
 	MaxIdle     int
 	MaxActive   int
 	IdleTimeout time.Duration
 }
 
-var RedisSetting = &Redis{}
+type Config struct {
+	AppSetting      *App      `mapstructure:"app"`
+	ServerSetting   *Server   `mapstructure:"server"`
+	DatabaseSetting *Database `mapstructure:"database"`
+	RedisSetting    *Redis    `mapstructure:"redis"`
+}

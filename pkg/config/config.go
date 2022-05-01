@@ -2,38 +2,65 @@ package config
 
 import (
 	"log"
-	"time"
+	"os"
+	"regexp"
 
-	"github.com/gookit/ini/v2"
-	"github.com/gookit/ini/v2/dotnev"
+	"github.com/spf13/viper"
+
+	"general_ledger_golang/pkg/logger"
 )
 
-// mapTo map section
-// This will map the section part of .ini with the interfaces like (RedisSetting, DatabaseSetting etc..).
-func mapTo(section string, conf interface{}) {
-	err := ini.MapStruct(section, conf)
+var config *viper.Viper
+var conf *Config
 
+// ReplaceEnvInConfig will replace the ${xx} value of yaml after fetching it from .env
+func ReplaceEnvInConfig(body []byte) []byte {
+	search := regexp.MustCompile(`\${([^{}]+)}`)
+	replacedBody := search.ReplaceAllFunc(body, func(b []byte) []byte {
+		group1 := search.ReplaceAllString(string(b), `$1`)
+		envValue := os.Getenv(group1)
+		if len(envValue) > 0 {
+			return []byte(envValue)
+		}
+		return []byte("")
+	})
+
+	return replacedBody
+}
+
+func GetProjectRoot() string {
+	rootPath, _ := os.Getwd()
+	return rootPath
+}
+
+// Setup is an exported method that takes the environment which starts the viper
+// lib and populates the conf struct.
+// configPath defaults to ./config/ if you provide "" as input
+func Setup(configPath string) {
+	if configPath == "" {
+		configPath = "./config/"
+	}
+	root := GetProjectRoot()
+	var err error
+	config = viper.New()
+	config.SetConfigType("yaml")
+	config.SetConfigName(os.Getenv("APP_ENV")) // config file is named dynamically based on APP_ENV
+	config.AddConfigPath(root)
+	config.AddConfigPath(configPath)
+	err = config.ReadInConfig()
 	if err != nil {
-		log.Fatalf("Cfg.MapTo %s err: %v", section, err)
+		log.Fatalf("error on parsing configuration file, err: %+v", err)
+	}
+	for _, key := range config.AllKeys() {
+		value := config.GetString(key)
+		envOrRaw := ReplaceEnvInConfig([]byte(value))
+		config.Set(key, string(envOrRaw))
+	}
+	if err = config.Unmarshal(&conf); err != nil {
+		logger.Logger.Printf("Could not parse config, Error: %+v", err)
 	}
 }
 
-// Setup initialize the configuration instance
-func Setup() {
-	err := dotnev.Load("./", ".env")
-	err2 := ini.LoadFiles("conf/app.ini")
-
-	if err != nil || err2 != nil {
-		log.Fatalf("config.Setup, fail to parse 'conf/app.ini': %v", err)
-	}
-
-	mapTo("app", AppSetting)
-	mapTo("server", ServerSetting)
-	mapTo("database", DatabaseSetting)
-	mapTo("redis", RedisSetting)
-
-	AppSetting.ImageMaxSize = AppSetting.ImageMaxSize * 1024 * 1024
-	ServerSetting.ReadTimeout = ServerSetting.ReadTimeout * time.Second
-	ServerSetting.WriteTimeout = ServerSetting.WriteTimeout * time.Second
-	RedisSetting.IdleTimeout = RedisSetting.IdleTimeout * time.Second
+func GetConfig() *Config {
+	return conf
 }
