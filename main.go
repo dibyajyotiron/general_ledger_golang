@@ -18,11 +18,12 @@ import (
 )
 
 func init() {
-	if funk.ContainsString([]string{"local", "localhost"}, os.Getenv("APP_ENV")) {
+	// use dotenv if explicitly marked enabled, else use dotenv only in local.
+	if os.Getenv("DOT_ENV") == "enable" || funk.ContainsString([]string{"local", "localhost"}, os.Getenv("APP_ENV")) {
 		err := godotenv.Load()
 		logger.Logger.Info(".env Loaded")
 		if err != nil {
-			logger.Logger.Fatalf("Couldn't load .env for local development, error: %+v", err)
+			logger.Logger.Fatalf("Couldn't load .env, error: %+v", err)
 		}
 	}
 	config.Setup("./pkg/config/")

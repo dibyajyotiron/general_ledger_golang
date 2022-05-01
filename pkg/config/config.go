@@ -10,7 +10,6 @@ import (
 	"general_ledger_golang/pkg/logger"
 )
 
-var config *viper.Viper
 var conf *Config
 
 // ReplaceEnvInConfig will replace the ${xx} value of yaml after fetching it from .env
@@ -41,6 +40,7 @@ func Setup(configPath string) {
 		configPath = "./config/"
 	}
 	root := GetProjectRoot()
+	var config *viper.Viper
 	var err error
 	config = viper.New()
 	config.SetConfigType("yaml")
@@ -61,6 +61,7 @@ func Setup(configPath string) {
 	}
 }
 
+// GetConfig returns the config struct, where all the configs are stored as a struct.
 func GetConfig() *Config {
 	return conf
 }

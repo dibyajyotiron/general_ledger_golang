@@ -15,7 +15,10 @@ Note: To get balance for a book, if operationType is not provided, OVERALL(opera
 
 Api Doc: Check the collections folder, you'll see the postman.json. Import this collection in postman. Requests have examples.
 
-Project depends on .env files, in production if used with ecs, make sure to create dotenv and store it inside s3 or pass all the variables to task definition.
+Configuration is manged via viper, create a config file with the `APP_ENV` value for that environment. .env is used by default only in `local/localhost` env, `DOT_ENV` if marked `enable` in any other environment,
+that will also use .env.
+
+In production if used with ecs and is dependent on dotenv, make sure to create dotenv and store it inside s3 or pass all the env variables to task definition.
 
 To pass .env file entirely, This below part should be with the ecs task definition ->
 ```
@@ -27,10 +30,12 @@ To pass .env file entirely, This below part should be with the ecs task definiti
 ]
 ```
 
-To run the server, 
+
+To run the server locally, 
   1. create .env file ->
       ```
       APP_ENV = xx
+      DOT_ENV=enable
       RUN_MODE = xx 
       DB_TYPE = xx
       DB_USER = xx
@@ -73,7 +78,8 @@ So, End of the day, it will translate into ->
 TODO:
 1. Test cases. (Integration test added, modification required)
 2. ~~BookId validation while creating operation.~~ (Done)
-3. Example Ledger Client implementation to manage the ledger of a crypto trading org.
-4. Customisable bookIds, based on type (asset or liability).
-5. Reserve top 100 bookIds for company books. Migration to partition the balances table, such that below 100 ids should get in a specific partition, remaining should be partitioned based on hash (.
-6. Better file naming, code cleanup.
+3. ~~Better Config, using yaml and viper.~~ (Done)
+4. Example Ledger Client implementation to manage the ledger of a crypto trading org.
+5. Customisable bookIds, based on type (asset or liability).
+6. Reserve top 100 bookIds for company books. Migration to partition the balances table, such that below 100 ids should get in a specific partition, remaining should be partitioned based on hash.
+7. Better file naming, code cleanup.
