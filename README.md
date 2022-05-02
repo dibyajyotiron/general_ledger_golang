@@ -3,13 +3,16 @@ Postgres is the database of choice here.
 
 Features:
 1. BookId 1 is always company cashbook.
-2. Double entry accounting, fast, stores book level balance by asset and operation.
-3. Asset agnostic, stocks,crypto... possibilities are endless.
-4. Can be extended for margin/leverage easily. 
-5. BookId based grouping, each user should have two books, block and main.
-6. No session or transaction level advisory locks or locks to ensure the highest throughput.
-7. Operation level grouping available. (op can be, LIMIT_ORDER, MARKET_ORDER)
-8. Different trade types i.e INTRA-DAY, QUARTERLY etc can be supported using the metadata. 
+2. Double entry accounting, fast, stores book level balance by asset and operation. 
+3. Asset agnostic, platform agnostic, stocks, crypto... possibilities are endless.
+4. You can ignore specific bookIds for which you don't need the balance using `EXCLUDED_BALANCE_BOOK_IDS` env. Example would be ignoring cashbook. The value should be , seperated string. (ex: 1,-1,0)  `By Default, all book's balances will be stored`. 
+5. Concurrent operations are already taken care of. No loading data onto memory to avoid balance mess up during heavy concurrent scenarios.
+6. DB level check constraint on bookId to ensure no -ve `OVERALL` type balance for a book and a given asset. (bookId 1 is excluded here)
+7. Operation level balance grouping available (op can be LIMIT_ORDER, MARKET_ORDER, DEPOSIT, WITHDRAW, TRADE etc.) where actual balance is denoted by `OVERALL` op type.
+8. Can be extended for margin/leverage easily in case of a trading platform. 
+9. BookId based grouping, each user should have two books, block and main book. Keep in mind, ledger server won't and shouldn't know if it's block or main book of a user.
+10. No session or transaction level advisory locks to ensure the highest throughput.
+11. Different trade types i.e. INTRA-DAY, QUARTERLY etc. can be supported using the metadata. 
 
 Note: To get balance for a book, if operationType is not provided, OVERALL(operationType) balance is fetched.
 
@@ -46,6 +49,7 @@ To run the server locally,
       DB_TABLE_PREFIX = xx
       DB_SSL_MODE = disable
       JWT_SECRET = xxxx
+      EXCLUDED_BALANCE_BOOK_IDS = 1,2,3 # if not provided, will store every bookId in the balances table.
       ```
 
   2. install dependencies -> `go mod vendor && go mod tidy`

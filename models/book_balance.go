@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 
@@ -164,7 +165,9 @@ func GenerateUpsertCteQuery(entries []interface{}, metadata map[string]interface
 	for _, entry2 := range entries {
 		entry := entry2.(map[string]interface{})
 		var paramsSlice []interface{}
-		if util.Includes(entry["bookId"], []interface{}{1, -1, "1", "-1"}) {
+		// Uses environment variable to decide which accounts should be tracked inside the book balance table.
+		// EXCLUDED_BALANCE_BOOK_IDS if not provided, will store every bookId in the balances table.
+		if strings.Contains(os.Getenv("EXCLUDED_BALANCE_BOOK_IDS"), entry["bookId"].(string)) {
 			continue
 		}
 		operationType := metadata["operation"]
