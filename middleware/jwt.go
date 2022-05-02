@@ -3,8 +3,8 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 
 	"general_ledger_golang/pkg/e"
 	"general_ledger_golang/pkg/logger"

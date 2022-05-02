@@ -4,9 +4,9 @@ go 1.18
 
 require (
 	github.com/astaxie/beego v1.12.3
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-playground/validator/v10 v10.10.1
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/joho/godotenv v1.4.0
 	github.com/shirou/gopsutil/v3 v3.22.2
