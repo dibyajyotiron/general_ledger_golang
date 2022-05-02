@@ -1,0 +1,42 @@
+name: Go
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: 'Create env file'
+      run: |
+        touch .env
+        echo APP_ENV=local >> .env
+        echo DOT_ENV=enable >> .env
+        echo RUN_MODE=release >> .env
+        echo DB_TYPE=postgres >> .env
+        echo DB_USER=admin >> .env
+        echo DB_PASSWORD=admin >> .env
+        echo DB_HOST=127.0.0.1 >> .env
+        echo DB_PORT=5432 >> .env
+        echo DB_NAME=golang_ledger >> .env
+        echo DB_TABLE_PREFIX=golang_ledger_ >> .env
+        echo DB_SSL_MODE=disable >> .env
+        echo APP_PORT=3000 >> .env
+        echo JWT_SECRET=usx1957-213123123123-12312sa7687-23424 >> .env
+        echo EXCLUDED_BALANCE_BOOK_IDS=0,1,-1,2,-2 >> .env
+        cat .env
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.18
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -v ./...
