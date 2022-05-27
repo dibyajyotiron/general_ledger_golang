@@ -49,7 +49,7 @@ func Setup(configPath string) {
 	config.AddConfigPath(configPath)
 	err = config.ReadInConfig()
 	if err != nil {
-		log.Fatalf("error on parsing configuration file, err: %+v", err)
+		log.Fatalf("error parsing configuration file, err: %+v", err)
 	}
 	for _, key := range config.AllKeys() {
 		value := config.GetString(key)
