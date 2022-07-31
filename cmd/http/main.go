@@ -11,8 +11,10 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/thoas/go-funk"
 
+	"general_ledger_golang/models"
 	"general_ledger_golang/pkg/config"
 	"general_ledger_golang/pkg/database"
+	"general_ledger_golang/pkg/database/migrations/auto"
 	"general_ledger_golang/pkg/logger"
 	"general_ledger_golang/pkg/util"
 	"general_ledger_golang/routers"
@@ -29,6 +31,14 @@ func init() {
 	}
 	config.Setup("./pkg/config/")
 	database.Setup()
+	models.Setup()
+
+	// Auto migration may not be the way to prod. It ideally should be disabled in prod.
+	// Migration should only run from cli in production as that can lead to serious locking of rows in case of alters.
+	if os.Getenv("AUTO_MIGRATE") == "enable" || funk.ContainsString([]string{"local", "localhost"}, os.Getenv("APP_ENV")) {
+		auto.Migrate()
+	}
+
 	logger.Setup()
 	util.Setup()
 }
