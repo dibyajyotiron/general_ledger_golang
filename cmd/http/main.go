@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -12,6 +13,8 @@ import (
 
 	"general_ledger_golang/models"
 	"general_ledger_golang/pkg/config"
+	"general_ledger_golang/pkg/database"
+	"general_ledger_golang/pkg/database/migrations/auto"
 	"general_ledger_golang/pkg/logger"
 	"general_ledger_golang/pkg/util"
 	"general_ledger_golang/routers"
@@ -27,14 +30,17 @@ func init() {
 		}
 	}
 	config.Setup("./pkg/config/")
+	database.Setup()
 	models.Setup()
-	logger.Setup()
-	//err := gredis.Setup()
-	util.Setup()
 
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
+	// Auto migration may not be the way to prod. It ideally should be disabled in prod.
+	// Migration should only run from cli in production as that can lead to serious locking of rows in case of alters.
+	if os.Getenv("AUTO_MIGRATE") == "enable" || funk.ContainsString([]string{"local", "localhost"}, os.Getenv("APP_ENV")) {
+		auto.Migrate()
+	}
+
+	logger.Setup()
+	util.Setup()
 }
 
 func main() {
@@ -55,10 +61,8 @@ func main() {
 		MaxHeaderBytes: maxHeaderBytes,
 	}
 
-	serverCreationDone := make(chan bool)
 	go func() {
-		err := srv.ListenAndServe()
-		if err != nil {
+		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 			logger.Logger.Errorf("Server Error: %v", err)
 			panic(err)
 		}
@@ -66,6 +70,8 @@ func main() {
 
 	logger.Logger.Infof("Actual pid is %d", syscall.Getpid())
 	logger.Logger.Infof("Http server listening on: %s", endPoint)
+	_, cancel := context.WithCancel(context.Background())
 
-	<-serverCreationDone
+	// gracefully stopping logic...
+	util.GracefulShutDown(cancel, srv)
 }

@@ -1,4 +1,4 @@
-package models
+package database
 
 import (
 	"database/sql"
@@ -56,23 +56,13 @@ func Setup() {
 
 	db, err = gorm.Open(postgres.Open(dsn), conf)
 	if err != nil {
-		logger.Logger.Fatalf("models.Setup err: %v", err)
-	}
-
-	if err = db.AutoMigrate(&Book{}, &Operation{}, &Posting{}, &BookBalance{}); err != nil {
-		log.Fatalf("Automigration failed, error: %+v", err) // fataF is printf followed by panic
-	}
-
-	if hasConstraint := db.Migrator().HasConstraint(&BookBalance{}, "non_negative_balance"); hasConstraint == false {
-		// create this constraint only if it doesn't exist, if any modification needed,
-		// drop and create the constraint as postgres doesn't have update constraint provision.
-		err = db.Migrator().CreateConstraint(&BookBalance{}, "non_negative_balance")
-		if err != nil {
-			log.Fatalf("non_negative_balance check constraint add failed, error: %+v", err)
-		}
+		logger.Logger.Fatalf("Gorm connection open err: %v", err)
 	}
 
 	sqlDB, err = db.DB()
+	if err != nil {
+		logger.Logger.Fatalf("Gorm sqlDB err: %v", err)
+	}
 
 	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
 	sqlDB.SetMaxIdleConns(10)
