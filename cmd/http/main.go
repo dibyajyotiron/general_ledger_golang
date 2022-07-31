@@ -11,8 +11,8 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/thoas/go-funk"
 
-	"general_ledger_golang/models"
 	"general_ledger_golang/pkg/config"
+	"general_ledger_golang/pkg/database"
 	"general_ledger_golang/pkg/logger"
 	"general_ledger_golang/pkg/util"
 	"general_ledger_golang/routers"
@@ -28,14 +28,9 @@ func init() {
 		}
 	}
 	config.Setup("./pkg/config/")
-	models.Setup()
+	database.Setup()
 	logger.Setup()
-	//err := gredis.Setup()
 	util.Setup()
-
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
 }
 
 func main() {
