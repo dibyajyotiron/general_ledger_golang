@@ -6,4 +6,4 @@ COPY . /
 RUN go build .
 
 EXPOSE 3000
-ENTRYPOINT ["general_ledger_golang/main.go"]
+ENTRYPOINT ["general_ledger_golang/cmd/http/main.go"]
