@@ -18,6 +18,7 @@ type App struct {
 type Server struct {
 	RunMode      string
 	HttpPort     int
+	GrpcPort     int
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 }
