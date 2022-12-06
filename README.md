@@ -53,7 +53,7 @@ To run the server locally,
       ```
 
   2. install dependencies -> `go mod vendor && go mod tidy`
-  3. run `./start_local_server.sh`
+  3. run `./run.sh`
 
 The server should run and have auto reload.
 
