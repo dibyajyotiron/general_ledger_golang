@@ -11,13 +11,14 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/thoas/go-funk"
 
+	grpcserver "general_ledger_golang/api/server"
+	"general_ledger_golang/api/server/routers"
 	"general_ledger_golang/models"
 	"general_ledger_golang/pkg/config"
 	"general_ledger_golang/pkg/database"
 	"general_ledger_golang/pkg/database/migrations/auto"
 	"general_ledger_golang/pkg/logger"
 	"general_ledger_golang/pkg/util"
-	"general_ledger_golang/routers"
 )
 
 func init() {
@@ -46,6 +47,8 @@ func init() {
 func main() {
 	conf := config.GetConfig()
 	gin.SetMode(conf.ServerSetting.RunMode)
+
+	go grpcserver.RegisterGrpcServer(conf.ServerSetting.GrpcPort)
 
 	router := routers.InitRouter()
 	readTimeout := conf.ServerSetting.ReadTimeout
