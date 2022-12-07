@@ -146,3 +146,17 @@ func Copy(dest, src map[string]interface{}, shouldReplace bool) {
 		}
 	}
 }
+
+// InterfaceToMapOfString Convert interface or map[string]interface to map[string]string
+func InterfaceToMapOfString(src interface{}) (map[string]string, error) {
+	byteSlice, err := json.Marshal(src)
+	if err != nil {
+		return nil, err
+	}
+	res := map[string]string{}
+	err = json.Unmarshal(byteSlice, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}

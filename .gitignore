@@ -10,3 +10,5 @@ vendor
 docs
 *.log
 .env
+
+api/proto/code/*

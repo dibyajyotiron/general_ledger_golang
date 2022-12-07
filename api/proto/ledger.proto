@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package ledger;
+
+option go_package = ".";
+
+message GetBalanceRequest {
+  string bookId = 1;
+  string assetId = 2;
+  string operationType = 3;
+}
+
+message GetBalanceResponse {
+  map<string, string> balances = 1;
+}
+
+// Interface exported by the server.
+service LegerService {
+  // GetBalance will return a specific account's balance based on provided params
+  rpc GetBalance(GetBalanceRequest) returns (GetBalanceResponse) {};
+}
