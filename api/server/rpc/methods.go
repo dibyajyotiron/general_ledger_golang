@@ -12,7 +12,7 @@ import (
 	"general_ledger_golang/service/book_service"
 )
 
-//GetBalance returns a map where key is the asset name, and value is the amount of that asset in that book
+// GetBalance returns a map where key is the asset name, and value is the amount of that asset in that book
 func (*Grpc) GetBalance(_ context.Context, req *proto.GetBalanceRequest) (res *proto.GetBalanceResponse, err error) {
 	logger.Logger.Infof("Invoked GetBalance")
 	bookService := book_service.BookService{}
