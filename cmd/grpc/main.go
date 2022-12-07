@@ -1,17 +1,13 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"net/http"
 	"os"
 	"syscall"
 
-	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/thoas/go-funk"
 
-	"general_ledger_golang/api/server/routers"
+	grpcserver "general_ledger_golang/api/server/grpc"
 	"general_ledger_golang/models"
 	"general_ledger_golang/pkg/config"
 	"general_ledger_golang/pkg/database"
@@ -43,36 +39,11 @@ func init() {
 	util.Setup()
 }
 
-// In case only http server is required, grpc is not needed, start this.
+// In-case, only grpc server is needed, http is not required, start this.
 func main() {
 	conf := config.GetConfig()
-	gin.SetMode(conf.ServerSetting.RunMode)
 
-	router := routers.InitRouter()
-	readTimeout := conf.ServerSetting.ReadTimeout
-	writeTimeout := conf.ServerSetting.WriteTimeout
-	endPoint := fmt.Sprintf("localhost:%d", conf.ServerSetting.HttpPort) // endpoint should look like 'localhost:1234'
-	maxHeaderBytes := 1 << 24                                            // this is around 16 mb.
-
-	srv := &http.Server{
-		Addr:           endPoint,
-		Handler:        router,
-		ReadTimeout:    readTimeout,
-		WriteTimeout:   writeTimeout,
-		MaxHeaderBytes: maxHeaderBytes,
-	}
-
-	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Logger.Errorf("Server Error: %v", err)
-			panic(err)
-		}
-	}()
+	grpcserver.RegisterGrpcServer(conf.ServerSetting.GrpcPort)
 
 	logger.Logger.Infof("Actual pid is %d", syscall.Getpid())
-	logger.Logger.Infof("Http server listening on: %s", endPoint)
-	_, cancel := context.WithCancel(context.Background())
-
-	// gracefully stopping logic...
-	util.GracefulShutDown(cancel, srv)
 }

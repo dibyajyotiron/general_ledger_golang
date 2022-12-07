@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"syscall"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/thoas/go-funk"
 
+	grpcserver "general_ledger_golang/api/server/grpc"
 	"general_ledger_golang/api/server/routers"
 	"general_ledger_golang/models"
 	"general_ledger_golang/pkg/config"
@@ -43,10 +43,12 @@ func init() {
 	util.Setup()
 }
 
-// In case only http server is required, grpc is not needed, start this.
+// In case, http and grpc both are required, start this.
 func main() {
 	conf := config.GetConfig()
 	gin.SetMode(conf.ServerSetting.RunMode)
+
+	go grpcserver.RegisterGrpcServer(conf.ServerSetting.GrpcPort)
 
 	router := routers.InitRouter()
 	readTimeout := conf.ServerSetting.ReadTimeout
@@ -69,7 +71,6 @@ func main() {
 		}
 	}()
 
-	logger.Logger.Infof("Actual pid is %d", syscall.Getpid())
 	logger.Logger.Infof("Http server listening on: %s", endPoint)
 	_, cancel := context.WithCancel(context.Background())
 

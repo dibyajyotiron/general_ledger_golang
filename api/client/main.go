@@ -11,7 +11,7 @@ import (
 	pb "general_ledger_golang/api/proto/code/go"
 )
 
-var addr = "localhost:51772"
+var addr = "localhost:6001"
 
 func main() {
 	tls := os.Getenv("tls") // value is enable for success.

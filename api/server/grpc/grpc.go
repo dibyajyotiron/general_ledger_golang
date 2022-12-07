@@ -1,4 +1,4 @@
-package rpc
+package grpc
 
 import (
 	"fmt"
@@ -16,6 +16,7 @@ type Grpc struct {
 }
 
 // RegisterGrpcServer will create a grpc server on the given port.
+// Supports graceful stopping of the server as well.
 func RegisterGrpcServer(grpcPort int) {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {

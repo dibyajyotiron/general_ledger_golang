@@ -10,7 +10,7 @@ server:
   HttpPort: "3000"
   ReadTimeout: "60s"
   WriteTimeout: "60s"
-  GrpcPort: "51772"
+  GrpcPort: "${GRPC_PORT}"
 database:
   Type: "${DB_TYPE}"
   User: "${DB_USER}"
