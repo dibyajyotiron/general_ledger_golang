@@ -11,8 +11,8 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/thoas/go-funk"
 
-	grpcserver "general_ledger_golang/api/server"
 	"general_ledger_golang/api/server/routers"
+	grpcserver "general_ledger_golang/api/server/rpc"
 	"general_ledger_golang/models"
 	"general_ledger_golang/pkg/config"
 	"general_ledger_golang/pkg/database"
@@ -65,7 +65,7 @@ func main() {
 	}
 
 	go func() {
-		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Logger.Errorf("Server Error: %v", err)
 			panic(err)
 		}
