@@ -87,3 +87,4 @@ TODO:
 5. Customisable bookIds, based on type (asset or liability).
 6. Reserve top 100 bookIds for company books. Migration to partition the balances table, such that below 100 ids should get in a specific partition, remaining should be partitioned based on hash.
 7. Better file naming, code cleanup.
+8. ~~Grpc support.~~ (Done)
