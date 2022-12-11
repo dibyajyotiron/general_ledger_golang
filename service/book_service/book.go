@@ -17,6 +17,11 @@ type BookService struct {
 	BookBalanceRepository models.BookBalance
 }
 
+// GetBook returns book details.
+//
+// Point to note: To unmarshal JSON into an interface value,
+// Unmarshal stores float64, for JSON numbers in the interface value.
+// So, any number inside the map that's of type interface is underlying float64.
 func (b *BookService) GetBook(bookId string, withBalance bool) (map[string]interface{}, error) {
 	if bookId == "" {
 		return nil, errors.New("BookId is empty")

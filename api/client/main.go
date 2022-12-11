@@ -41,5 +41,7 @@ func main() {
 
 	c := pb.NewLegerServiceClient(conn)
 
-	GetBalanceCall(c)
+	//GetBalanceCall(c)
+	//GetOperationByMemoCall(c)
+	CreateOperationCall(c)
 }
