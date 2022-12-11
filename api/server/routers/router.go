@@ -1,9 +1,9 @@
 package routers
 
 import (
+	v1 "general_ledger_golang/api/server/routers/api/v1"
 	"general_ledger_golang/middleware"
 	"general_ledger_golang/models"
-	v1 "general_ledger_golang/routers/api/v1"
 
 	"github.com/gin-gonic/gin"
 )

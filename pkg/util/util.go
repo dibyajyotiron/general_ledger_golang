@@ -2,12 +2,14 @@ package util
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 
 	"github.com/gin-gonic/gin"
 
 	setting "general_ledger_golang/pkg/config"
+	"general_ledger_golang/pkg/logger"
 )
 
 // Setup Initialize the util
@@ -145,4 +147,27 @@ func Copy(dest, src map[string]interface{}, shouldReplace bool) {
 			}
 		}
 	}
+}
+
+// InterfaceToMapOfString Convert interface or map[string]interface to map[string]string
+func InterfaceToMapOfString(src interface{}) (map[string]string, error) {
+	byteSlice, err := json.Marshal(src)
+	if err != nil {
+		return nil, err
+	}
+	res := map[string]string{}
+	err = json.Unmarshal(byteSlice, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func ConvertToMapSlice(i interface{}) ([]interface{}, error) {
+	v, ok := i.([]interface{})
+	if !ok {
+		logger.Logger.Errorf("There was a problem converting to a slice")
+		return nil, errors.New("conversion to slice failed")
+	}
+	return v, nil
 }

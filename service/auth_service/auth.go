@@ -1,6 +1,6 @@
 package auth_service
 
-import models "general_ledger_golang/models"
+import "general_ledger_golang/models"
 
 type Auth struct {
 	Username string

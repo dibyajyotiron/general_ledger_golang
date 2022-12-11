@@ -8,6 +8,8 @@ import (
 	"github.com/thoas/go-funk"
 	"gorm.io/gorm"
 
+	proto "general_ledger_golang/api/proto/code/go"
+
 	"general_ledger_golang/models"
 	"general_ledger_golang/pkg/util"
 	"general_ledger_golang/service/book_service"
@@ -135,6 +137,7 @@ func (o *OperationService) ApplyOperation(op map[string]interface{}) (map[string
 	opInterface := util.StructToJSON(*newOp)
 	return opInterface, nil
 }
+
 func (o *OperationService) UpdateOperation(op map[string]interface{}, tx *gorm.DB) (map[string]interface{}, error) {
 	var db *gorm.DB
 
@@ -165,4 +168,42 @@ func (o *OperationService) applyOperationWithRetries(op map[string]interface{}, 
 		return nil, err
 	}
 	return newOp, nil
+}
+
+func (o *OperationService) EntryInterfaceToProtoEntries(entries interface{}) ([]*proto.Entries, error) {
+	var protoEntries []*proto.Entries
+	entriesSlice, err := util.ConvertToMapSlice(entries)
+	if err != nil {
+		return nil, err
+	}
+	for i := 0; i < len(entriesSlice); i++ {
+		entryMap, err2 := util.InterfaceToMapOfString(entriesSlice[i])
+		if err2 != nil {
+			continue // in case of error, log and move to next
+		}
+		protoEntry := &proto.Entries{
+			Value:   entryMap["value"],
+			BookId:  entryMap["bookId"],
+			AssetId: entryMap["assetId"],
+		}
+		protoEntries = append(protoEntries, protoEntry)
+	}
+	return protoEntries, nil
+}
+
+func (o *OperationService) ProtoEntriesToEntryInterface(entries []*proto.Entries) []interface{} {
+	if len(entries) < 1 {
+		return []interface{}{}
+	}
+	var resultMap []interface{}
+	for i := 0; i < len(entries); i++ {
+		protoEntry := entries[i]
+		mapEntry := map[string]interface{}{
+			"bookId":  protoEntry.BookId,
+			"assetId": protoEntry.AssetId,
+			"value":   protoEntry.Value,
+		}
+		resultMap = append(resultMap, mapEntry)
+	}
+	return resultMap
 }

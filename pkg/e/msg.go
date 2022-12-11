@@ -5,9 +5,9 @@ var MsgFlags = map[int]string{
 	DEBIT:               "DEBIT",
 	CREDIT:              "CREDIT",
 	NOT_EXIST:           "NOT_EXIST",
-	ERROR:               "ERROR",
 	MISSING_AUTH_HEADER: "MISSING_AUTH_HEADER",
 	INVALID_PARAMS:      "INVALID_PARAMS",
+	ERROR:               "Something Went Wrong, we're checking",
 }
 
 // GetMsg get error information based on Code
