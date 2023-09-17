@@ -62,6 +62,7 @@ To run the server locally,
       DB_SSL_MODE = disable
       JWT_SECRET = xxxx
       EXCLUDED_BALANCE_BOOK_IDS = 1,2,3 # if not provided, will store every bookId in the balances table.
+      SERVICE_TOKEN_WHITELIST={"user_module":{"read":"abc","write":"cde"}}
       ```
 
   2. install dependencies -> `go mod vendor && go mod tidy`
