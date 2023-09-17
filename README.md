@@ -1,18 +1,30 @@
 A very light-weight double accounting ledger, written in Go for best performance.
 Postgres is the database of choice here.
+Reason:
+     Ledger works heavily on transactions and uses relations as well to ensure no balance records are kept for books that are not there.
+     Without transaction, managing balance updates are really difficult when something fails. Hence, db is not switchable, it's `Postgres`.
 
 Features:
-1. BookId 1 is always company cashbook.
-2. Double entry accounting, fast, stores book level balance by asset and operation. 
-3. Asset agnostic, platform agnostic, stocks, crypto... possibilities are endless.
-4. You can ignore specific bookIds for which you don't need the balance using `EXCLUDED_BALANCE_BOOK_IDS` env. Example would be ignoring cashbook. The value should be , seperated string. (ex: 1,-1,0)  `By Default, all book's balances will be stored`. 
-5. Concurrent operations are already taken care of. No loading data onto memory to avoid balance mess up during heavy concurrent scenarios.
-6. DB level check constraint on bookId to ensure no -ve `OVERALL` type balance for a book and a given asset. (bookId 1 is excluded here)
-7. Operation level balance grouping available (op can be LIMIT_ORDER, MARKET_ORDER, DEPOSIT, WITHDRAW, TRADE etc.) where actual balance is denoted by `OVERALL` op type.
-8. Can be extended for margin/leverage easily in case of a trading platform. 
-9. BookId based grouping, each user should have two books, block and main book. Keep in mind, ledger server won't and shouldn't know if it's block or main book of a user.
-10. No session or transaction level advisory locks to ensure the highest throughput.
-11. Different trade types i.e. INTRA-DAY, QUARTERLY etc. can be supported using the metadata. 
+1. BookId 1 is company cashbook. (Not really mandated, but should be a mandate for better traceability)
+2. Custom Environment var support by using `${VAR_NAME}`, VAR_NAME should be present in os.ENV.
+3. Ledger supports custom json environment variables along with string env vars as well (key will be string only),
+   for now `map[string]string`, `map[string]bool`, `map[string]map[string]string` and `map[string]map[string]bool` are supported in terms of json.
+   Any value inside of `env`.yaml (ex: local.yaml) should have a value that looks like -> "${XXX}",
+   it will be auto replaced when code runs, XXX should be present in the environment.
+     1. `map[string]map[string]string`: `local.yaml` -> `server.ServiceTokenWhitelist`, in .env, if you write `SERVICE_TOKEN_WHITELIST={"user_module":{"read":"abc","write":"cde"}}`,
+        it will be automatically parsed into map of maps, the inner map will be map of map of string.
+     2. `map[string]string` is also supported. ENV: `SERVICE_TOKEN_WHITELIST={"user_module":"abc"}`, change `local.yaml` -> `server.ServiceTokenWhitelist` to be `map[string]string`.
+     3. Similarly, for bool types. Key is always string, keep that in mind.
+4. Double entry accounting, fast, stores book level balance by asset and operation. 
+5. Asset agnostic, platform agnostic, stocks, crypto... possibilities are endless.
+6. You can ignore specific bookIds for which you don't need the balance using `EXCLUDED_BALANCE_BOOK_IDS` env. Example would be ignoring cashbook. The value should be , seperated string. (ex: 1,-1,0)  `By Default, all book's balances will be stored`. 
+7. Concurrent operations are already taken care of. No loading data onto memory to avoid balance mess up during heavy concurrent scenarios.
+8. DB level check constraint on bookId to ensure no -ve `OVERALL` type balance for a book and a given asset. (bookId 1 is excluded here)
+9. Operation level balance grouping available (op can be LIMIT_ORDER, MARKET_ORDER, DEPOSIT, WITHDRAW, TRADE etc.) where actual balance is denoted by `OVERALL` op type.
+10. Can be extended for margin/leverage easily in case of a trading platform. 
+11. BookId based grouping, each user should have two books, block and main book. Keep in mind, ledger server won't and shouldn't know if it's block or main book of a user.
+12. No session or transaction level advisory locks to ensure the highest throughput.
+13. Different trade types i.e. INTRA-DAY, QUARTERLY etc. can be supported using the metadata. 
 
 Note: To get balance for a book, if operationType is not provided, OVERALL(operationType) balance is fetched.
 

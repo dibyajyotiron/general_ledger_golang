@@ -49,7 +49,7 @@ func Setup() {
 			log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 			gLogger.Config{
 				SlowThreshold:             time.Millisecond * time.Duration(100), // Slow SQL threshold
-				LogLevel:                  gLogger.Info,                          // Log level
+				LogLevel:                  gLogger.Warn,                          // Log level
 				IgnoreRecordNotFoundError: false,                                 // Ignore ErrRecordNotFound error for logger
 				Colorful:                  false,                                 // Disable color
 			},

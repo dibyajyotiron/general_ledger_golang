@@ -21,6 +21,11 @@ type Server struct {
 	GrpcPort     int
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
+	// ServiceTokenWhitelist
+	//
+	// Example:
+	//		{"service_name":{"read":"abc","write":"cde"}}
+	ServiceTokenWhitelist map[string]map[string]string
 }
 
 // Database DB settings Section
