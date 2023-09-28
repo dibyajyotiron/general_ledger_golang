@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/jackc/pgconn"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	gLogger "gorm.io/gorm/logger"
@@ -15,8 +14,6 @@ import (
 	"general_ledger_golang/pkg/config"
 	"general_ledger_golang/pkg/logger"
 	"general_ledger_golang/pkg/util"
-
-	"github.com/mattn/go-sqlite3"
 )
 
 var db *gorm.DB
@@ -88,19 +85,19 @@ func CloseDB() {
 	}(sqlDB)
 }
 
-// GetCode Given a gorm response, it returns the sql error code.
-func GetCode(value *gorm.DB) string {
-	if value.Error != nil {
-		switch value.Dialector.Name() {
-		case "sqlite":
-			if err, ok := value.Error.(sqlite3.Error); ok {
-				return err.ExtendedCode.Error()
-			}
-		case "postgres":
-			if err, ok := value.Error.(*pgconn.PgError); ok {
-				return err.Code
-			}
-		}
-	}
-	return value.Error.Error()
-}
+//// GetCode Given a gorm response, it returns the sql error code.
+//func GetCode(value *gorm.DB) string {
+//	if value.Error != nil {
+//		switch value.Dialector.Name() {
+//		case "sqlite":
+//			if err, ok := value.Error.(sqlite3.Error); ok {
+//				return err.ExtendedCode.Error()
+//			}
+//		case "postgres":
+//			if err, ok := value.Error.(*pgconn.PgError); ok {
+//				return err.Code
+//			}
+//		}
+//	}
+//	return value.Error.Error()
+//}
