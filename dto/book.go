@@ -2,7 +2,6 @@ package dto
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -44,7 +43,6 @@ func BookToDTO(b *models.Book) (*BookDTO, error) {
 			return nil, err
 		}
 	}
-	fmt.Println(b)
 	return &BookDTO{
 		Id:        b.Id,
 		Name:      b.Name,

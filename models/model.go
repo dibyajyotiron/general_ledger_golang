@@ -7,7 +7,6 @@ import (
 	"gorm.io/gorm"
 
 	"general_ledger_golang/pkg/database"
-	"general_ledger_golang/pkg/logger"
 )
 
 var db *gorm.DB
@@ -25,6 +24,5 @@ func Setup() {
 }
 
 func GetDB() (*gorm.DB, *sql.DB) {
-	logger.Logger.Infof("DB: %+v, SQLDB: %+v", db, sqlDB)
 	return db, sqlDB
 }
