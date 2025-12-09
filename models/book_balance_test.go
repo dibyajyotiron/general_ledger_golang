@@ -3,22 +3,16 @@ package models
 import (
 	"strings"
 	"testing"
+
+	"general_ledger_golang/domain"
 )
 
 func TestMain(t *testing.T) {
 	// GenerateUpsertCteQuery will generate multiple upsert queries
 
-	queries, params, err := GenerateUpsertCteQuery([]interface{}{
-		map[string]interface{}{
-			"assetId": "btc",
-			"bookId":  "3",
-			"value":   "-1",
-		},
-		map[string]interface{}{
-			"assetId": "btc",
-			"bookId":  "4",
-			"value":   "1",
-		},
+	queries, params, err := GenerateUpsertCteQuery([]domain.OperationEntry{
+		{AssetId: "btc", BookId: "3", Value: "-1"},
+		{AssetId: "btc", BookId: "4", Value: "1"},
 	}, map[string]interface{}{
 		"operation": "BLOCK",
 	})

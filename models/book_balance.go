@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -10,8 +11,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
+	"general_ledger_golang/domain"
 	"general_ledger_golang/pkg/logger"
-	"general_ledger_golang/pkg/util"
 )
 
 type BookBalance struct {
@@ -26,54 +27,51 @@ const (
 	OverallOperation string = "OVERALL"
 )
 
-func (bB *BookBalance) ModifyBalance(operation map[string]interface{}, db *gorm.DB) error {
+func (bB *BookBalance) ModifyBalance(ctx context.Context, entries []domain.OperationEntry, metadata map[string]interface{}, gormDB *gorm.DB) error {
 	log := logger.Logger.WithFields(logrus.Fields{
-		"memo": operation["memo"],
-		"op":   operation,
+		"memo": fmt.Sprint(metadata["memo"]),
+		"op": map[string]interface{}{
+			"entries":  entries,
+			"metadata": metadata,
+		},
 	})
-	// commenting genericOp based validations to reduce updated rows on db
-	// genericOp := util.DeepCopyMap(operation)
 
-	overallOp := util.DeepCopyMap(operation)
-	if _, ok := overallOp["metadata"]; !ok {
+	if metadata == nil {
 		return errors.New("metadata is not present, creation of book balance depends on metadata[\"operation\"], please send metadata with operation")
 	}
-	overallOp["metadata"].(map[string]interface{})["operation"] = OverallOperation
 
-	operations := []map[string]interface{}{
-		// genericOp,
-		overallOp,
+	if gormDB == nil {
+		gormDB = db
 	}
 
-	// sort the operation entries in place, everything is reference type, so sorting in-place works fine
-	for _, op := range operations {
-		entries := op["entries"].([]interface{})
-		metadata := op["metadata"].(map[string]interface{})
-		bB.sortEntries(entries)
+	metaCopy := map[string]interface{}{}
+	for k, v := range metadata {
+		metaCopy[k] = v
+	}
+	metaCopy["operation"] = OverallOperation
 
-		// create the queries by looping over the entries
-		// note: Bulk upsert won't work here. for book_balance, there can be one bookId already present in book_balance
-		// but the other one is not, so both will need to change. for one, it's insert and the other one it's update.
-		queryList, params, err := GenerateUpsertCteQuery(entries, metadata)
-		if err != nil {
-			return err
-		}
+	opEntries := make([]domain.OperationEntry, len(entries))
+	copy(opEntries, entries)
+	bB.sortEntries(opEntries)
 
-		log.Infof("Executing -> quries: %+v, params: %+v", queryList, params)
+	queryList, params, err := GenerateUpsertCteQuery(opEntries, metaCopy)
+	if err != nil {
+		return err
+	}
 
-		// execute the queries one by one, if any query errors out, roll back
-		for i, query := range queryList {
-			t := db.Debug().Exec(query, params[i]...)
-			if t.Error != nil {
-				log.WithFields(map[string]interface{}{
-					"q": map[string]interface{}{
-						"query": strings.ReplaceAll(strings.ReplaceAll(query, "\t", " "), "\n", " "),
-						"vars":  params[i],
-					},
-				}).Errorf("DB error, %+v", t.Error)
+	log.Infof("Executing -> quries: %+v, params: %+v", queryList, params)
 
-				return errors.New(t.Error.Error())
-			}
+	for i, query := range queryList {
+		t := gormDB.WithContext(ctx).Debug().Exec(query, params[i]...)
+		if t.Error != nil {
+			log.WithFields(map[string]interface{}{
+				"q": map[string]interface{}{
+					"query": strings.ReplaceAll(strings.ReplaceAll(query, "\t", " "), "\n", " "),
+					"vars":  params[i],
+				},
+			}).Errorf("DB error, %+v", t.Error)
+
+			return errors.New(t.Error.Error())
 		}
 	}
 
@@ -81,7 +79,7 @@ func (bB *BookBalance) ModifyBalance(operation map[string]interface{}, db *gorm.
 }
 
 // GenerateBulkUpsertQuery will generate a single bulkUpsert query
-func GenerateBulkUpsertQuery(entries []interface{}, metadata map[string]interface{}) (query string, params []interface{}, errs error) {
+func GenerateBulkUpsertQuery(entries []domain.OperationEntry, metadata map[string]interface{}) (query string, params []interface{}, errs error) {
 	var bookIds []string
 	var assetIds []string
 	var operationTypes []string
@@ -129,28 +127,20 @@ func GenerateBulkUpsertQuery(entries []interface{}, metadata map[string]interfac
 			);
 			`, updateQ, bulkInsertQ)
 	var errList []string
-	for _, entry2 := range entries {
-		entry := entry2.(map[string]interface{})
-
-		if util.Includes(entry["bookId"], []interface{}{1, -1, "1", "-1"}) {
+	for _, entry := range entries {
+		if entry.BookId == "1" || entry.BookId == "-1" {
 			continue
 		}
 
-		operationType := metadata["operation"]
-
-		if operationType == nil {
+		operationType, ok := metadata["operation"]
+		if !ok {
 			return "", nil, errors.New("operation is not present inside metadata, creation of book balance depends on metadata[\"operation\"], please send metadata with operation")
 		}
-		//valueAsF64, parseFloatErr := strconv.ParseFloat(entry["value"].(string), 64)
-		//
-		//if parseFloatErr != nil {
-		//	errList = append(errList, parseFloatErr.Error())
-		//}
 
-		bookIds = append(bookIds, entry["bookId"].(string))
-		assetIds = append(assetIds, entry["assetId"].(string))
-		values = append(values, entry["value"].(string))
-		operationTypes = append(operationTypes, operationType.(string))
+		bookIds = append(bookIds, entry.BookId)
+		assetIds = append(assetIds, entry.AssetId)
+		values = append(values, entry.Value)
+		operationTypes = append(operationTypes, fmt.Sprint(operationType))
 	}
 	if len(errList) > 0 {
 		return "", nil, errors.New(strings.Join(errList, ""))
@@ -169,18 +159,14 @@ func GenerateBulkUpsertQuery(entries []interface{}, metadata map[string]interfac
 }
 
 // GenerateUpsertCteQuery will generate multiple upsert queries
-func GenerateUpsertCteQuery(entries []interface{}, metadata map[string]interface{}) (queryList []string, params [][]interface{}, err error) {
-	for _, entry2 := range entries {
-		entry := entry2.(map[string]interface{})
+func GenerateUpsertCteQuery(entries []domain.OperationEntry, metadata map[string]interface{}) (queryList []string, params [][]interface{}, err error) {
+	for _, entry := range entries {
 		var paramsSlice []interface{}
-		// Uses environment variable to decide which accounts should be tracked inside the book balance table.
-		// EXCLUDED_BALANCE_BOOK_IDS if not provided, will store every bookId in the balances table.
-		if strings.Contains(os.Getenv("EXCLUDED_BALANCE_BOOK_IDS"), entry["bookId"].(string)) {
+		if strings.Contains(os.Getenv("EXCLUDED_BALANCE_BOOK_IDS"), entry.BookId) {
 			continue
 		}
-		operationType := metadata["operation"]
-
-		if operationType == nil {
+		operationType, ok := metadata["operation"]
+		if !ok {
 			return nil, nil, errors.New("operation is not present inside metadata, creation of book balance depends on metadata[\"operation\"], please send metadata with operation")
 		}
 
@@ -195,7 +181,7 @@ func GenerateUpsertCteQuery(entries []interface{}, metadata map[string]interface
 					AND "operationType" = ?
 				RETURNING *
 			`
-		paramsSlice = append(paramsSlice, gorm.Expr("book_balances.balance + ?::numeric ", entry["value"]), entry["assetId"], entry["bookId"], operationType)
+		paramsSlice = append(paramsSlice, gorm.Expr("book_balances.balance + ?::numeric ", entry.Value), entry.AssetId, entry.BookId, fmt.Sprint(operationType))
 
 		insertQ := `INSERT
 			INTO book_balances
@@ -217,10 +203,10 @@ func GenerateUpsertCteQuery(entries []interface{}, metadata map[string]interface
 
 		paramsSlice = append(
 			paramsSlice,
-			entry["bookId"],
-			entry["assetId"],
-			operationType,
-			entry["value"])
+			entry.BookId,
+			entry.AssetId,
+			fmt.Sprint(operationType),
+			entry.Value)
 
 		cteQ := fmt.Sprintf(`
 			WITH upsert AS (
@@ -238,15 +224,13 @@ func GenerateUpsertCteQuery(entries []interface{}, metadata map[string]interface
 	return queryList, params, nil
 }
 
-func (bB *BookBalance) sortEntries(entries []interface{}) {
+func (bB *BookBalance) sortEntries(entries []domain.OperationEntry) {
 	sort.SliceStable(entries, func(i, j int) bool {
-		iEntry := entries[i].(map[string]interface{})
-		jEntry := entries[j].(map[string]interface{})
-		// i < j means smallest first, largest last
-		sortByBookId := iEntry["bookId"].(string) < jEntry["bookId"].(string)
-		// first sort by bookId, if bookIds are matching, then sort by assetId, to guarantee order.
-		if iEntry["bookId"] == jEntry["bookId"] {
-			sortByAssetId := iEntry["assetId"].(string) < jEntry["assetId"].(string)
+		iEntry := entries[i]
+		jEntry := entries[j]
+		sortByBookId := iEntry.BookId < jEntry.BookId
+		if iEntry.BookId == jEntry.BookId {
+			sortByAssetId := iEntry.AssetId < jEntry.AssetId
 			return sortByAssetId
 		}
 		return sortByBookId
@@ -254,15 +238,15 @@ func (bB *BookBalance) sortEntries(entries []interface{}) {
 }
 
 // GetBalance fetches the balance
-func (bB *BookBalance) GetBalance(bookId, assetId, operationType string, tx *gorm.DB) (*[]BookBalance, error) {
+func (bB *BookBalance) GetBalance(ctx context.Context, bookId, assetId, operationType string, tx *gorm.DB) ([]BookBalance, error) {
 	var d *gorm.DB
 	if bookId == "" {
 		return nil, errors.New("BookId is missing")
 	}
 	if tx != nil {
-		d = tx
+		d = tx.WithContext(ctx)
 	} else {
-		d = db
+		d = db.WithContext(ctx)
 	}
 	var balance []BookBalance
 	//err := db.Select("id").Where(Auth{Username: username, Password: password}).First(&auth).Error
@@ -284,5 +268,5 @@ func (bB *BookBalance) GetBalance(bookId, assetId, operationType string, tx *gor
 		return nil, nil
 	}
 
-	return &balance, nil
+	return balance, nil
 }

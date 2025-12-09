@@ -6,38 +6,27 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 
+	"general_ledger_golang/dto"
 	"general_ledger_golang/pkg/app"
 	"general_ledger_golang/pkg/e"
 	"general_ledger_golang/pkg/logger"
-	"general_ledger_golang/pkg/util"
 	"general_ledger_golang/service/operation_service"
 )
 
 func PostOperation(c *gin.Context) {
 	appGin := app.Gin{C: c}
-	reqBody := util.GetReqBodyFromCtx(c)
-
-	opType := reqBody["type"]
-	memo := reqBody["memo"]
-	entries := reqBody["entries"]
-	metadata := reqBody["metadata"]
-
-	opMap := map[string]interface{}{
-		"type":     opType,
-		"memo":     memo,
-		"entries":  entries,
-		"metadata": metadata,
-	}
+	payloadVal, _ := c.Get("operationPayload")
+	payload := payloadVal.(dto.OperationPayload)
 
 	log := logger.Logger.WithFields(logrus.Fields{
-		"memo": memo,
-		"op":   opMap,
+		"memo": payload.Memo,
+		"op":   payload,
 	})
 
 	log.Infof("Request Received")
 
-	opService := &operation_service.OperationService{}
-	foundOp, err := opService.PostOperation(opMap)
+	opService := operation_service.NewOperationService(nil, nil, nil, nil, nil)
+	foundOp, err := opService.PostOperation(c.Request.Context(), payload)
 
 	if err != nil || foundOp == nil {
 		log.Errorf("Creating Operation Failed, error: %+v", err)
@@ -65,8 +54,8 @@ func GetOperationByMemo(c *gin.Context) {
 		return
 	}
 
-	opService := &operation_service.OperationService{}
-	foundOp, err := opService.GetOperation(memo, nil)
+	opService := operation_service.NewOperationService(nil, nil, nil, nil, nil)
+	foundOp, err := opService.GetOperation(c.Request.Context(), memo)
 
 	if err != nil {
 		logger.Logger.Errorf("Fetching Operation Failed, error: %+v", err)

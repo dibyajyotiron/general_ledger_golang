@@ -5,6 +5,8 @@ import (
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
+
+	"general_ledger_golang/domain"
 )
 
 type Posting struct {
@@ -16,9 +18,8 @@ type Posting struct {
 	AssetId     string         `gorm:"index;column:assetId" json:"assetId"`
 }
 
-// BulkCreatePosting will create posting entries as a bulk from given slice of maps.
-// Conds will have "operationId" first, then "metadata" added to it. Any other field inside conds is ignored.
-func (p *Posting) BulkCreatePosting(postings []interface{}, tx *gorm.DB, conds ...interface{}) error {
+// BulkCreatePosting will create posting entries as a bulk from given slice of OperationEntry values.
+func (p *Posting) BulkCreatePosting(postings []domain.OperationEntry, tx *gorm.DB, operationId uint64, metadata datatypes.JSON) error {
 	// operations are idempotent
 	var d *gorm.DB
 
@@ -30,24 +31,13 @@ func (p *Posting) BulkCreatePosting(postings []interface{}, tx *gorm.DB, conds .
 	var postingsSlice []Posting
 
 	for i := 0; i < len(postings); i++ {
-		posting := postings[i].(map[string]interface{})
-
-		operationId := posting["operationId"]
-		metadata := posting["metadata"]
-
-		if conds[0] != nil {
-			operationId = conds[0]
-		}
-		if conds[1] != nil {
-			metadata = conds[1]
-		}
-
+		posting := postings[i]
 		postingsSlice = append(postingsSlice, Posting{
-			OperationId: strconv.Itoa(int(operationId.(uint64))),
-			BookId:      posting["bookId"].(string),
-			Value:       posting["value"].(string),
-			Metadata:    metadata.(datatypes.JSON),
-			AssetId:     posting["assetId"].(string),
+			OperationId: strconv.Itoa(int(operationId)),
+			BookId:      posting.BookId,
+			Value:       posting.Value,
+			Metadata:    metadata,
+			AssetId:     posting.AssetId,
 		})
 	}
 

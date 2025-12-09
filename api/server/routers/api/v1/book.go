@@ -1,19 +1,16 @@
 package v1
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/datatypes"
 
-	"general_ledger_golang/models"
+	"general_ledger_golang/dto"
 	"general_ledger_golang/pkg/app"
 	"general_ledger_golang/pkg/e"
 	"general_ledger_golang/pkg/logger"
-	"general_ledger_golang/pkg/util"
 	"general_ledger_golang/service/book_service"
 )
 
@@ -27,8 +24,8 @@ func GetBook(c *gin.Context) {
 		logger.Logger.Errorf("Parsing of `balance` failed, error: %+v", err)
 	}
 
-	bookService := book_service.BookService{}
-	result, err := bookService.GetBook(bookId, balanceFetch)
+	bookService := book_service.NewBookService(nil, nil, nil)
+	result, err := bookService.GetBook(c.Request.Context(), bookId, balanceFetch)
 
 	if err != nil {
 		appGin.Response(http.StatusInternalServerError, e.ERROR, map[string]interface{}{"error": err.Error()})
@@ -49,9 +46,9 @@ func GetBookBalance(c *gin.Context) {
 	assetId := c.Query("assetId")
 	operationType := c.Query("operationType")
 
-	bookService := book_service.BookService{}
+	bookService := book_service.NewBookService(nil, nil, nil)
 
-	result, err := bookService.GetBalance(bookId, assetId, operationType, nil)
+	result, err := bookService.GetBalance(c.Request.Context(), bookId, assetId, operationType, nil)
 
 	if err != nil {
 		appGin.Response(http.StatusInternalServerError, e.ERROR, map[string]interface{}{"error": err.Error()})
@@ -64,18 +61,11 @@ func GetBookBalance(c *gin.Context) {
 
 func CreateOrUpdateBook(c *gin.Context) {
 	appGin := app.Gin{C: c}
-	reqBody := util.GetReqBodyFromCtx(c)
+	payloadVal, _ := c.Get("bookPayload")
+	payload := payloadVal.(dto.BookPayload)
 
-	if reqBody == nil {
-		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, map[string]interface{}{"error": "Missing request body or not a valid json!"})
-		return
-	}
-
-	name := reqBody["name"].(string)
-	metadataBytes, _ := json.Marshal(reqBody["metadata"])
-	book := models.Book{Name: name, Metadata: datatypes.JSON(metadataBytes)}
-	result, operation := book.CreateOrUpdateBook(&book)
-	err := result.Error
+	bookService := book_service.NewBookService(nil, nil, nil)
+	result, operation, err := bookService.UpsertBook(c.Request.Context(), payload)
 
 	if err != nil {
 		fmt.Printf("Book creation failed: %+v", err)
@@ -84,7 +74,7 @@ func CreateOrUpdateBook(c *gin.Context) {
 	}
 
 	appGin.Response(http.StatusOK, e.SUCCESS, map[string]interface{}{
-		"book":    book,
+		"book":    result,
 		"message": fmt.Sprintf("%v successful", operation),
 	})
 	return

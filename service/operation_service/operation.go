@@ -1,166 +1,146 @@
 package operation_service
 
 import (
-	"fmt"
-	"reflect"
-	"time"
+	"context"
+	"encoding/json"
+	"errors"
 
-	"github.com/thoas/go-funk"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 
 	proto "general_ledger_golang/api/proto/code/go"
-
+	"general_ledger_golang/domain"
+	"general_ledger_golang/dto"
 	"general_ledger_golang/models"
-	"general_ledger_golang/pkg/util"
-	"general_ledger_golang/service/book_service"
+	"general_ledger_golang/repository"
 )
 
 type OperationService struct {
-	OperationRepository models.Operation
+	repo     repository.OperationRepository
+	books    repository.BookRepository
+	balances repository.BookBalanceRepository
+	postings repository.PostingRepository
+	db       *gorm.DB
 }
 
-func (o *OperationService) GetOperation(memo string, tx *gorm.DB) (map[string]interface{}, error) {
-	foundOp, err := o.OperationRepository.GetOperation(memo, tx)
-	// If error, return error
-	if err != nil {
-		fmt.Printf("Fetching Operation Failed, error: %+v", err)
-		return nil, err
+func NewOperationService(db *gorm.DB, repo repository.OperationRepository, books repository.BookRepository, balances repository.BookBalanceRepository, postings repository.PostingRepository) *OperationService {
+	if db == nil {
+		db, _ = models.GetDB()
 	}
-	// If operation is found, return operation
-	if foundOp != nil {
-		opInterface := util.StructToJSON(foundOp)
-		//appGin.Response(http.StatusOK, e.SUCCESS, map[string]interface{}{"operation": foundOp})
-		return opInterface, nil
+	if repo == nil {
+		repo = repository.NewOperationRepository(db)
 	}
-	// else, return nil, nil, if no error and no operation is found.
-	return nil, nil
+	if books == nil {
+		books = repository.NewBookRepository(db)
+	}
+	if balances == nil {
+		balances = repository.NewBookBalanceRepository(db)
+	}
+	if postings == nil {
+		postings = repository.NewPostingRepository(db)
+	}
+	return &OperationService{
+		repo:     repo,
+		books:    books,
+		balances: balances,
+		postings: postings,
+		db:       db,
+	}
 }
 
-// PostOperation op-> {type: '', memo:'', entries: [{bookId: '', assetId: '', value: ''}], metadata: {}}
-func (o *OperationService) PostOperation(op map[string]interface{}) (map[string]interface{}, error) {
-	// This should call ApplyOperation
-	newOp, err := o.ApplyOperation(op)
-
-	if err != nil {
+func (o *OperationService) GetOperation(ctx context.Context, memo string) (*dto.OperationDTO, error) {
+	if memo == "" {
+		return nil, errors.New("memo is empty")
+	}
+	foundOp, err := o.repo.GetByMemo(ctx, nil, memo)
+	if err != nil || foundOp == nil {
 		return nil, err
 	}
-
-	opInterface := util.StructToJSON(newOp)
-	return opInterface, nil
+	return dto.OperationToDTO(foundOp)
 }
 
-func (o *OperationService) ApplyOperation(op map[string]interface{}) (map[string]interface{}, error) {
-	db, _ := models.GetDB()
+// PostOperation op-> {type: ”, memo:”, entries: [{bookId: ”, assetId: ”, value: ”}], metadata: {}}
+func (o *OperationService) PostOperation(ctx context.Context, op dto.OperationPayload) (*dto.OperationDTO, error) {
+	if err := op.Validate(); err != nil {
+		return nil, err
+	}
+	return o.ApplyOperation(ctx, op)
+}
 
-	var newOp *models.Operation
-
-	existingOp, err := o.GetOperation(op["memo"].(string), nil)
-
+func (o *OperationService) ApplyOperation(ctx context.Context, op dto.OperationPayload) (*dto.OperationDTO, error) {
+	existingOp, err := o.GetOperation(ctx, op.Memo)
 	if err != nil {
 		return nil, err
 	}
-
 	if existingOp != nil {
 		return existingOp, nil
 	}
-	bS := book_service.BookService{}
 
-	// TODO: Maybe create rejected status in case of non_negative_balance as well, to have a better insight.
-	// This memo will not be further tried, as ledger is meant to be idempotent, a new memo should be created with correct bookIds.
+	entries := op.Entries
+	var outDTO *dto.OperationDTO
 
-	deepCopiedOp := util.DeepCopyMap(op)
+	err = o.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		opModel, err := dto.OperationPayloadToModel(op)
+		if err != nil {
+			return err
+		}
+		opModel.Status = string(models.OperationInit)
 
-	err = db.Transaction(func(tx *gorm.DB) error {
-		// do some database operations in the transaction (use 'tx' from this point, not 'db')
-		// apply operation with retries
-		// return nil commits trx, return error will roll back transaction
-		op["status"] = string(models.OperationInit)
-
-		newOp, err = o.applyOperationWithRetries(op, tx, 0)
+		newOp, err := o.applyOperationWithRetries(ctx, opModel, tx, 0)
 		if err != nil {
 			return err
 		}
 
-		bookIds := funk.Map(deepCopiedOp["entries"], func(entry interface{}) string {
-			e := entry.(map[string]interface{})
-			id := e["bookId"]
-			if reflect.TypeOf(id).Kind() != reflect.String {
-				return ""
-			}
-			return id.(string)
-		})
-		ok, e := bS.CheckBookExists(bookIds.([]string), tx)
+		bookIds := uniqueBookIds(entries)
+		ok, bookErr := o.checkBooksExist(ctx, bookIds, tx)
 
 		if !ok {
-			op["status"] = string(models.OperationRejected)
-			op["rejectionReason"] = e.Error()
-			_, err = o.UpdateOperation(op, tx)
-			// update newOp as that will get returned to the user.
-			newOp.Status = string(models.OperationRejected)
-			newOp.RejectionReason = e.Error()
-			if err != nil {
+			reason := ""
+			if bookErr != nil {
+				reason = bookErr.Error()
+			}
+			if err := o.repo.UpdateStatus(ctx, tx, op.Memo, models.OperationRejected, reason); err != nil {
 				return err
 			}
-			// return nil to create rejected operation
-			return nil
-		}
-
-		postings := &models.Posting{}
-
-		err = postings.BulkCreatePosting(deepCopiedOp["entries"].([]interface{}), tx, newOp.Id, newOp.Metadata)
-		if err != nil {
+			newOp.Status = string(models.OperationRejected)
+			newOp.RejectionReason = reason
+			outDTO, err = dto.OperationToDTO(newOp)
 			return err
 		}
 
-		// create Book balance here, if the balance goes below 0, then rollBack the trx. else proceed
-		err = bS.BookBalanceRepository.ModifyBalance(deepCopiedOp, tx)
+		metadataBytes, err := json.Marshal(op.Metadata)
 		if err != nil {
 			return err
 		}
+		if err := o.postings.BulkCreate(ctx, tx, entries, newOp.Id, datatypes.JSON(metadataBytes)); err != nil {
+			return err
+		}
 
+		if err := o.balances.ModifyBalance(ctx, tx, entries, op.Metadata); err != nil {
+			return err
+		}
+
+		if err := o.repo.UpdateStatus(ctx, tx, op.Memo, models.OperationApplied, ""); err != nil {
+			return err
+		}
 		newOp.Status = string(models.OperationApplied)
-		op["status"] = string(models.OperationApplied)
-		newOp.UpdatedAt = time.Time{}
-
-		err = o.OperationRepository.UpdateOperation(op, tx)
-		if err != nil {
-			return err
-		}
-
-		return nil // commits the transaction
+		outDTO, err = dto.OperationToDTO(newOp)
+		return err
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	opInterface := util.StructToJSON(*newOp)
-	return opInterface, nil
+	return outDTO, nil
 }
 
-func (o *OperationService) UpdateOperation(op map[string]interface{}, tx *gorm.DB) (map[string]interface{}, error) {
-	var db *gorm.DB
-
-	if tx != nil {
-		db = tx
-	} else {
-		db, _ = models.GetDB()
-	}
-
-	// update operation
-	r := db.Model(&o.OperationRepository).Where("memo = ?", op["memo"]).Updates(op)
-	if r.Error != nil {
-		return nil, r.Error
-	}
-	return op, nil
-}
-
-func (o *OperationService) applyOperationWithRetries(op map[string]interface{}, tx *gorm.DB, rC int) (*models.Operation, error) {
-	newOp, err := o.OperationRepository.CreateOperation(op, tx)
+func (o *OperationService) applyOperationWithRetries(ctx context.Context, op *models.Operation, tx *gorm.DB, rC int) (*models.Operation, error) {
+	newOp, err := o.repo.Create(ctx, tx, op)
 	totalRetryCount, currRetryCount := rC, 0
 
 	for currRetryCount < totalRetryCount && err != nil {
-		newOp, err = o.OperationRepository.CreateOperation(op, tx)
+		newOp, err = o.repo.Create(ctx, tx, op)
 		currRetryCount++
 	}
 
@@ -170,40 +150,56 @@ func (o *OperationService) applyOperationWithRetries(op map[string]interface{}, 
 	return newOp, nil
 }
 
-func (o *OperationService) EntryInterfaceToProtoEntries(entries interface{}) ([]*proto.Entries, error) {
-	var protoEntries []*proto.Entries
-	entriesSlice, err := util.ConvertToMapSlice(entries)
-	if err != nil {
-		return nil, err
+func (o *OperationService) EntriesToProto(entries []domain.OperationEntry) []*proto.Entries {
+	if len(entries) == 0 {
+		return nil
 	}
-	for i := 0; i < len(entriesSlice); i++ {
-		entryMap, err2 := util.InterfaceToMapOfString(entriesSlice[i])
-		if err2 != nil {
-			continue // in case of error, log and move to next
-		}
-		protoEntry := &proto.Entries{
-			Value:   entryMap["value"],
-			BookId:  entryMap["bookId"],
-			AssetId: entryMap["assetId"],
-		}
-		protoEntries = append(protoEntries, protoEntry)
+	result := make([]*proto.Entries, 0, len(entries))
+	for _, entry := range entries {
+		result = append(result, &proto.Entries{
+			Value:   entry.Value,
+			BookId:  entry.BookId,
+			AssetId: entry.AssetId,
+		})
 	}
-	return protoEntries, nil
+	return result
 }
 
-func (o *OperationService) ProtoEntriesToEntryInterface(entries []*proto.Entries) []interface{} {
-	if len(entries) < 1 {
-		return []interface{}{}
+func (o *OperationService) ProtoEntriesToEntries(entries []*proto.Entries) []domain.OperationEntry {
+	if len(entries) == 0 {
+		return nil
 	}
-	var resultMap []interface{}
-	for i := 0; i < len(entries); i++ {
-		protoEntry := entries[i]
-		mapEntry := map[string]interface{}{
-			"bookId":  protoEntry.BookId,
-			"assetId": protoEntry.AssetId,
-			"value":   protoEntry.Value,
+	result := make([]domain.OperationEntry, 0, len(entries))
+	for _, entry := range entries {
+		result = append(result, domain.OperationEntry{
+			BookId:  entry.BookId,
+			AssetId: entry.AssetId,
+			Value:   entry.Value,
+		})
+	}
+	return result
+}
+
+func uniqueBookIds(entries []domain.OperationEntry) []string {
+	seen := map[string]struct{}{}
+	unique := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		if _, ok := seen[entry.BookId]; ok {
+			continue
 		}
-		resultMap = append(resultMap, mapEntry)
+		seen[entry.BookId] = struct{}{}
+		unique = append(unique, entry.BookId)
 	}
-	return resultMap
+	return unique
+}
+
+func (o *OperationService) checkBooksExist(ctx context.Context, bookIds []string, tx *gorm.DB) (bool, error) {
+	books, err := o.books.GetMany(ctx, tx, bookIds)
+	if err != nil {
+		return false, err
+	}
+	if len(books) != len(bookIds) {
+		return false, errors.New("some bookIds couldn't be found")
+	}
+	return true, nil
 }

@@ -5,6 +5,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 
 	pb "general_ledger_golang/api/proto/code/go"
 	"general_ledger_golang/pkg/logger"
@@ -70,6 +71,11 @@ func GetOperationByMemoCall(c pb.LegerServiceClient) {
 func CreateOperationCall(c pb.LegerServiceClient) {
 	logger.Logger.Infof("GetBalanceCall was invoked")
 
+	meta, _ := structpb.NewStruct(map[string]interface{}{
+		"operation": "DEPOSIT",
+		"order_id":  "81233318822391995",
+	})
+
 	operation := &pb.CreateOperationReq{
 		Type: "TRANSFER",
 		Memo: "MEMO_HHG2499421",
@@ -85,10 +91,7 @@ func CreateOperationCall(c pb.LegerServiceClient) {
 				AssetId: "inr",
 			},
 		},
-		Metadata: map[string]string{
-			"operation": "DEPOSIT",
-			"order_id":  "81233318822391995",
-		},
+		Metadata: meta,
 	}
 	r, err := c.CreateOperation(context.Background(), operation)
 

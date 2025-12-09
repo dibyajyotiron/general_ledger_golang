@@ -8,6 +8,7 @@ import (
 	"github.com/joho/godotenv"
 	asrt "github.com/stretchr/testify/assert"
 
+	"general_ledger_golang/domain"
 	"general_ledger_golang/models"
 	"general_ledger_golang/pkg/config"
 	"general_ledger_golang/pkg/logger"
@@ -16,39 +17,31 @@ import (
 func TestQueryGeneration(t *testing.T) {
 	assert := asrt.New(t)
 	t.Run("Test_Bulk_Query_Generation", func(t *testing.T) {
-		entries := []interface{}{
-			map[string]interface{}{
-				"bookId":  "4112314",
-				"assetId": "inr",
-				"value":   "20000"},
-			map[string]interface{}{
-				"bookId":  "4112313",
-				"assetId": "inr",
-				"value":   "-20000",
-			}}
+		entries := []domain.OperationEntry{
+			{BookId: "4112314", AssetId: "inr", Value: "20000"},
+			{BookId: "4112313", AssetId: "inr", Value: "-20000"},
+		}
 		logger.Logger.Infof("Entries: %+v", entries)
 		metadata := map[string]interface{}{"operation": "DEPOSIT"}
 		q, p, e := models.GenerateBulkUpsertQuery(entries, metadata)
 		assert.Nil(e)
 		assert.NotEqual("", p, "Params slice should not be empty")
-		assert.Len(p[0], len(entries))
-		assert.Len(p[1], len(entries))
-		assert.Len(p[2], len(entries))
-		assert.Len(p[3], len(entries))
+		assetParam := p[0].(string)
+		bookParam := p[1].(string)
+		opParam := p[2].(string)
+		valueParam := p[3].(string)
+		assert.Equal(len(entries), len(strings.Split(assetParam, ",")))
+		assert.Equal(len(entries), len(strings.Split(bookParam, ",")))
+		assert.Equal(len(entries), len(strings.Split(opParam, ",")))
+		assert.Equal(len(entries), len(strings.Split(valueParam, ",")))
 		logger.Logger.Printf("Query: %+v", strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(q, "\t", ""), "\n", ""), "\\", ""))
 		//logger.Logger.Printf("Params: %+v", p)
 	})
 	t.Run("Test_Upsert_Query_Generation", func(t *testing.T) {
-		entries := []interface{}{
-			map[string]interface{}{
-				"bookId":  "4112314",
-				"assetId": "inr",
-				"value":   "20000"},
-			map[string]interface{}{
-				"bookId":  "4112313",
-				"assetId": "inr",
-				"value":   "-20000",
-			}}
+		entries := []domain.OperationEntry{
+			{BookId: "4112314", AssetId: "inr", Value: "20000"},
+			{BookId: "4112313", AssetId: "inr", Value: "-20000"},
+		}
 		logger.Logger.Infof("Entries: %+v", entries)
 		metadata := map[string]interface{}{"operation": "DEPOSIT"}
 		q, p, e := models.GenerateUpsertCteQuery(entries, metadata)

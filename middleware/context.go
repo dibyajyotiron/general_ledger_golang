@@ -18,7 +18,6 @@ func UseRequestBody() gin.HandlerFunc {
 		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 		c.Set("requestBodyBytes", bodyBytes)
 		c.Next()
-		return
 	}
 }
 

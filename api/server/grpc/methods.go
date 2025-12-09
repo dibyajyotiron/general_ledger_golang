@@ -2,45 +2,37 @@ package grpc
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"time"
 
-	"github.com/shopspring/decimal"
-	"gorm.io/datatypes"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 
 	proto "general_ledger_golang/api/proto/code/go"
-	"general_ledger_golang/models"
+	"general_ledger_golang/dto"
 	"general_ledger_golang/pkg/e"
 	"general_ledger_golang/pkg/logger"
-	"general_ledger_golang/pkg/util"
-	"general_ledger_golang/service/operation_service"
-
 	"general_ledger_golang/service/book_service"
+	"general_ledger_golang/service/operation_service"
 )
 
-func (*Grpc) GetBook(_ context.Context, req *proto.GetBookReq) (res *proto.GetBookRes, err error) {
-	bookService := book_service.BookService{}
+func (*Grpc) GetBook(ctx context.Context, req *proto.GetBookReq) (res *proto.GetBookRes, err error) {
+	bookService := book_service.NewBookService(nil, nil, nil)
 
-	result, err := bookService.GetBook(req.BookId, false)
+	result, err := bookService.GetBook(ctx, req.BookId, false)
 	if err != nil {
 		logger.Logger.Infof("Error Occured while calling bookService.GetBook, req: %+v, err: %+v", req, err)
 		return nil, err
 	}
-
-	marshal, _ := json.Marshal(result)
-	logger.Logger.Infof("Result: %+v", string(marshal))
-
-	d, err := util.InterfaceToMapOfString(result["metadata"])
-	if err != nil {
-		logger.Logger.Infof("Error Occured while calling InterfaceToMapOfString, req: %+v, err: %+v", result["metadata"], err)
-		return nil, err
+	if result == nil {
+		return nil, e.GrpcRecordNotFound("book not found", "GetBook", nil)
 	}
+	metaStruct, _ := structpb.NewStruct(result.Book.Metadata)
 	mappedBook := &proto.BookResp{
-		CreatedAt: result["createdAt"].(string),
-		Id:        decimal.NewFromFloat(result["id"].(float64)).String(),
-		Metadata:  d,
-		Name:      result["name"].(string),
-		UpdatedAt: result["updatedAt"].(string),
+		CreatedAt: result.Book.CreatedAt.Format(time.RFC3339Nano),
+		Id:        fmt.Sprintf("%d", result.Book.Id),
+		Metadata:  metaStruct,
+		Name:      result.Book.Name,
+		UpdatedAt: result.Book.UpdatedAt.Format(time.RFC3339Nano),
 	}
 
 	return &proto.GetBookRes{
@@ -49,51 +41,43 @@ func (*Grpc) GetBook(_ context.Context, req *proto.GetBookReq) (res *proto.GetBo
 }
 
 // GetBalance returns a map where key is the asset name, and value is the amount of that asset in that book
-func (*Grpc) GetBalance(_ context.Context, req *proto.GetBalanceReq) (res *proto.GetBalanceRes, err error) {
+func (*Grpc) GetBalance(ctx context.Context, req *proto.GetBalanceReq) (res *proto.GetBalanceRes, err error) {
 	logger.Logger.Infof("Invoked GetBalance")
-	bookService := book_service.BookService{}
+	bookService := book_service.NewBookService(nil, nil, nil)
 
-	result, err := bookService.GetBalance(req.BookId, "", "", nil)
-	marshal, _ := json.Marshal(result)
-
-	logger.Logger.Infof("Result: %+v", string(marshal))
-
+	result, err := bookService.GetBalance(ctx, req.BookId, "", "", nil)
 	if err != nil {
 		return nil, err
 	}
 
 	resBalances := map[string]string{}
-	for k, v := range result {
-		vMap, er := util.InterfaceToMapOfString(v)
-		// in case of err, return
-		if er != nil {
-			logger.Logger.Infof("Error Occured while converting interface to map of string, v: %+v, err: %+v", v, er)
-			return nil, er
-			//return nil, errors.New("something went wrong, we're checking")
-		}
-		resBalances[k] = vMap["balance"]
+	for _, balance := range result {
+		resBalances[balance.AssetId] = balance.Balance
 	}
 	return &proto.GetBalanceRes{
 		Balances: resBalances,
 	}, nil
 }
 
-func (*Grpc) CreateOrUpdateBook(_ context.Context, req *proto.CreateUpdateBookReq) (*proto.CreateUpdateBookRes, error) {
-	metadataBytes, _ := json.Marshal(req.Metadata)
+func (*Grpc) CreateOrUpdateBook(ctx context.Context, req *proto.CreateUpdateBookReq) (*proto.CreateUpdateBookRes, error) {
 	if req.Name == "" {
 		return nil, e.GrpcFieldNotFound("name is required.")
 	}
-	book := models.Book{Name: req.Name, Metadata: datatypes.JSON(metadataBytes)}
-	result, operationMessage := book.CreateOrUpdateBook(&book)
-	err := result.Error
+	bookService := book_service.NewBookService(nil, nil, nil)
+
+	meta := map[string]any{}
+	if req.Metadata != nil {
+		meta = req.Metadata.AsMap()
+	}
+	payload := dto.BookPayload{Name: req.Name, Metadata: meta}
+	_, operationMessage, err := bookService.UpsertBook(ctx, payload)
 	if err != nil {
 		logger.Logger.Errorf("Book creation failed: %+v", err)
 		return nil, e.GrpcInternalError(
-			"book.CreateOrUpdateBook",
+			"bookService.UpsertBook",
 			err,
 			map[string]string{
-				"name": book.Name,
-				"err":  "Book creation failed:",
+				"name": payload.Name,
 			},
 		)
 	}
@@ -102,12 +86,12 @@ func (*Grpc) CreateOrUpdateBook(_ context.Context, req *proto.CreateUpdateBookRe
 	}, nil
 }
 
-func (*Grpc) GetOperationByMemo(_ context.Context, req *proto.GetOperationByMemoReq) (res *proto.GetOperationByMemoRes, err error) {
-	opService := &operation_service.OperationService{}
+func (*Grpc) GetOperationByMemo(ctx context.Context, req *proto.GetOperationByMemoReq) (res *proto.GetOperationByMemoRes, err error) {
+	opService := operation_service.NewOperationService(nil, nil, nil, nil, nil)
 	if req.Memo == "" {
 		return nil, e.GrpcFieldNotFound("memo is required.")
 	}
-	foundOp, err := opService.GetOperation(req.Memo, nil)
+	foundOp, err := opService.GetOperation(ctx, req.Memo)
 	if err != nil {
 		logger.Logger.Errorf("Fetching operation failed, memo: %+v, err: %+v", req.Memo, err)
 		return nil, e.GrpcInternalError("opService.GetOperation", err, nil)
@@ -117,28 +101,19 @@ func (*Grpc) GetOperationByMemo(_ context.Context, req *proto.GetOperationByMemo
 		return nil, e.GrpcRecordNotFound(errMsg, "GetOperationByMemo", nil)
 	}
 
-	protoEntries, err2 := opService.EntryInterfaceToProtoEntries(foundOp["entries"])
-	if err2 != nil {
-		logger.Logger.Errorf("converting to proto entries failed, op: %+v, err: %+v", foundOp, err2)
-		protoEntries = nil // it's nil in case of error so response can be sent.
-		return nil, e.GrpcInternalError("opService.GetOperation", err2, nil)
-	}
-
-	metadata, err3 := util.InterfaceToMapOfString(foundOp["metadata"])
-	if err3 != nil {
-		logger.Logger.Errorf("converting metadata to interface failed, op: %+v, err: %+v", foundOp, err2)
-	}
+	protoEntries := opService.EntriesToProto(foundOp.Entries)
+	metaStruct, _ := structpb.NewStruct(foundOp.Metadata)
 
 	operation := &proto.Operation{
-		Memo:            foundOp["memo"].(string),
-		Id:              decimal.NewFromFloat(foundOp["id"].(float64)).IntPart(),
-		CreatedAt:       foundOp["createdAt"].(string),
-		UpdatedAt:       foundOp["updatedAt"].(string),
-		Type:            foundOp["type"].(string),
+		Memo:            foundOp.Memo,
+		Id:              int64(foundOp.Id),
+		CreatedAt:       foundOp.CreatedAt.Format(time.RFC3339Nano),
+		UpdatedAt:       foundOp.UpdatedAt.Format(time.RFC3339Nano),
+		Type:            foundOp.Type,
 		Entries:         protoEntries,
-		Status:          foundOp["status"].(string),
-		RejectionReason: foundOp["rejectionReason"].(string),
-		Metadata:        metadata,
+		Status:          foundOp.Status,
+		RejectionReason: foundOp.RejectionReason,
+		Metadata:        metaStruct,
 		// note, postman, for some reason, doesn't show
 		// metadata (empty object in pm), but it's shown
 		// if made request from a raw cli based grpc client.
@@ -152,51 +127,38 @@ func (*Grpc) GetOperationByMemo(_ context.Context, req *proto.GetOperationByMemo
 
 }
 
-func (*Grpc) CreateOperation(_ context.Context, req *proto.CreateOperationReq) (res *proto.CreateOperationRes, err error) {
-	opService := &operation_service.OperationService{}
+func (*Grpc) CreateOperation(ctx context.Context, req *proto.CreateOperationReq) (res *proto.CreateOperationRes, err error) {
+	opService := operation_service.NewOperationService(nil, nil, nil, nil, nil)
 
-	reqEntries := opService.ProtoEntriesToEntryInterface(req.Entries)
-	metadataInterface := map[string]interface{}{}
-
-	for key, value := range req.Metadata {
-		metadataInterface[key] = value
+	meta := map[string]interface{}{}
+	if req.Metadata != nil {
+		meta = req.Metadata.AsMap()
 	}
-	opMap := map[string]interface{}{
-		"type":     req.Type,
-		"memo":     req.Memo,
-		"entries":  reqEntries,
-		"metadata": metadataInterface,
+	opPayload := dto.OperationPayload{
+		Type:     req.Type,
+		Memo:     req.Memo,
+		Entries:  opService.ProtoEntriesToEntries(req.Entries),
+		Metadata: meta,
 	}
 
-	foundOp, err := opService.PostOperation(opMap)
+	foundOp, err := opService.PostOperation(ctx, opPayload)
 	if err != nil || foundOp == nil {
 		logger.Logger.Errorf("Creating Operation Failed, error: %+v", err)
 		return nil, e.GrpcInternalError("Creating operation resulted in error!",
 			err, nil)
 	}
 
-	protoEntries, err2 := opService.EntryInterfaceToProtoEntries(foundOp["entries"])
-	if err2 != nil {
-		logger.Logger.Errorf("converting to proto entries failed, op: %+v, err: %+v", foundOp, err2)
-		protoEntries = nil // it's nil in case of error so response can be sent.
-		return nil, e.GrpcInternalError("opService.GetOperation", err2, nil)
-	}
-
-	metadata, err3 := util.InterfaceToMapOfString(foundOp["metadata"])
-	if err3 != nil {
-		logger.Logger.Errorf("converting metadata to interface failed, op: %+v, err: %+v", foundOp, err2)
-	}
-
+	metaStruct, _ := structpb.NewStruct(foundOp.Metadata)
 	operation := &proto.Operation{
-		Memo:            foundOp["memo"].(string),
-		Id:              decimal.NewFromFloat(foundOp["id"].(float64)).IntPart(),
-		CreatedAt:       foundOp["createdAt"].(string),
-		UpdatedAt:       foundOp["updatedAt"].(string),
-		Type:            foundOp["type"].(string),
-		Entries:         protoEntries,
-		Status:          foundOp["status"].(string),
-		RejectionReason: foundOp["rejectionReason"].(string),
-		Metadata:        metadata,
+		Memo:            foundOp.Memo,
+		Id:              int64(foundOp.Id),
+		CreatedAt:       foundOp.CreatedAt.Format(time.RFC3339Nano),
+		UpdatedAt:       foundOp.UpdatedAt.Format(time.RFC3339Nano),
+		Type:            foundOp.Type,
+		Entries:         opService.EntriesToProto(foundOp.Entries),
+		Status:          foundOp.Status,
+		RejectionReason: foundOp.RejectionReason,
+		Metadata:        metaStruct,
 	}
 
 	return &proto.CreateOperationRes{

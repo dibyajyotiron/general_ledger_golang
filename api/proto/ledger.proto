@@ -4,6 +4,8 @@ package ledger;
 
 option go_package = ".";
 
+import "google/protobuf/struct.proto";
+
 message GetBalanceReq {
   string bookId = 1;
   string assetId = 2;
@@ -24,7 +26,7 @@ message GetBalanceRes {
 
 message CreateUpdateBookReq {
   string name = 1;
-  map<string, string> metadata = 2;
+  google.protobuf.Struct metadata = 2;
 }
 
 message CreateUpdateBookRes {
@@ -46,7 +48,7 @@ message GetBookRes {
 message BookResp {
   string createdAt = 1;
   string id = 2;
-  map<string, string> metadata = 3;
+  google.protobuf.Struct metadata = 3;
   string name = 4;
   string updatedAt = 5;
 }
@@ -74,7 +76,7 @@ message Operation {
   repeated entries Entries = 6;
   string status = 7;
   string rejectionReason = 8;
-  map<string, string> metadata = 9;
+  google.protobuf.Struct metadata = 9;
 }
 
 message GetOperationByMemoRes {
@@ -87,7 +89,7 @@ message CreateOperationReq {
   string type = 1;
   string memo = 2;
   repeated entries entries = 3;
-  map<string, string> metadata = 4;
+  google.protobuf.Struct metadata = 4;
 }
 
 message CreateOperationRes {
