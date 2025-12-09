@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package ledger;
+
+option go_package = ".";
+
+message GetBalanceReq {
+  string bookId = 1;
+  string assetId = 2;
+  string operationType = 3;
+}
+
+message GetBalanceRes {
+  // Note: For scalar message fields, once a message is parsed there's no way of telling
+  // whether a field was explicitly set to the default value
+  // (for example whether a boolean was set to false) or just not set at all:
+  // you should bear this in mind when defining your message types.
+  // For example, don't have a boolean that switches on some behaviour
+  // when set to false if you don't want that behaviour to also happen by default.
+  bool error = 1;
+  string errorMessage = 2;
+  map<string, string> balances = 3;
+}
+
+message CreateUpdateBookReq {
+  string name = 1;
+  map<string, string> metadata = 2;
+}
+
+message CreateUpdateBookRes {
+  bool error = 1;
+  string errorMessage = 2;
+  string message = 3;
+}
+
+message GetBookReq {
+  string bookId = 1;
+}
+
+message GetBookRes {
+  bool error = 1;
+  string errorMessage = 2;
+  BookResp book = 3;
+}
+
+message BookResp {
+  string createdAt = 1;
+  string id = 2;
+  map<string, string> metadata = 3;
+  string name = 4;
+  string updatedAt = 5;
+}
+
+message entries {
+  string value = 1;
+  string bookId = 2;
+  string assetId = 3;
+}
+
+message metadata {
+
+}
+
+message GetOperationByMemoReq {
+  string memo = 1;
+}
+
+message Operation {
+  string memo = 1;
+  int64 id = 2;
+  string createdAt = 3;
+  string updatedAt = 4;
+  string type = 5;
+  repeated entries Entries = 6;
+  string status = 7;
+  string rejectionReason = 8;
+  map<string, string> metadata = 9;
+}
+
+message GetOperationByMemoRes {
+  bool error = 1;
+  string errorMessage = 2;
+  Operation operation = 3;
+}
+
+message CreateOperationReq {
+  string type = 1;
+  string memo = 2;
+  repeated entries entries = 3;
+  map<string, string> metadata = 4;
+}
+
+message CreateOperationRes {
+  bool error = 1;
+  string errorMessage = 2;
+  Operation operation = 3;
+}
+// Interface exported by the server.
+service LegerService {
+  rpc CreateOrUpdateBook(CreateUpdateBookReq) returns (CreateUpdateBookRes) {};
+  rpc GetBook(GetBookReq) returns (GetBookRes) {};
+  // GetBalance will return a specific account's balance based on provided params
+  rpc GetBalance(GetBalanceReq) returns (GetBalanceRes) {};
+  rpc GetOperationByMemo(GetOperationByMemoReq) returns (GetOperationByMemoRes) {};
+  rpc CreateOperation(CreateOperationReq) returns (CreateOperationRes) {};
+}

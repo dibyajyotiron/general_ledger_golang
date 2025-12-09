@@ -1,0 +1,1255 @@
+{
+  "info": {
+    "_postman_id": "b1d4ad5b-1318-48a0-8fa2-f2b2b4f16c8a",
+    "name": "Golang_Ledger",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "create book",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n        \"name\": \"xyz_block_book\",\n        \"metadata\": {\"phone\": \"+919674753375\", \"user_id\": 1},\n        \"restrictions\": {\n            \"minBalance\": 0\n        }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/{{v1}}/books",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{v1}}",
+            "books"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "update book",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n        \"name\": \"company_account_book\",\n        \"metadata\": {},\n        \"restrictions\": {\n            \"minBalance\": 0\n        }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3000/api/v1/books",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "v1",
+                "books"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Access-Control-Allow-Credentials",
+              "value": "true"
+            },
+            {
+              "key": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
+            },
+            {
+              "key": "Access-Control-Allow-Methods",
+              "value": "POST, OPTIONS, GET, PUT, DELETE"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 28 Mar 2022 04:21:11 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "55"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"code\": 200,\n    \"msg\": \"SUCCESS\",\n    \"data\": {\n        \"book\": {\n            \"id\": 0,\n            \"createdAt\": \"0001-01-01T00:00:00Z\",\n            \"updatedAt\": \"2023-09-28T17:56:39.759508+05:30\",\n            \"name\": \"xyz_block_book\",\n            \"metadata\": {\n                \"phone\": \"+919674753375\",\n                \"user_id\": 1\n            }\n        },\n        \"message\": \"update successful\"\n    }\n}"
+        },
+        {
+          "name": "create book",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n        \"name\": \"xyz_main_book\",\n        \"metadata\": {},\n        \"restrictions\": {\n            \"minBalance\": 0\n        }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{v1}}/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{v1}}",
+                "books"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Access-Control-Allow-Credentials",
+              "value": "true"
+            },
+            {
+              "key": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
+            },
+            {
+              "key": "Access-Control-Allow-Methods",
+              "value": "POST, OPTIONS, GET, PUT, DELETE"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 28 Mar 2022 04:21:56 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "55"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"code\": 200,\n    \"msg\": \"SUCCESS\",\n    \"data\": {\n        \"book\": {\n            \"id\": 0,\n            \"createdAt\": \"0001-01-01T00:00:00Z\",\n            \"updatedAt\": \"2023-09-28T17:56:39.759508+05:30\",\n            \"name\": \"xyz_block_book\",\n            \"metadata\": {\n                \"phone\": \"+919674753375\",\n                \"user_id\": 1\n            }\n        },\n        \"message\": \"create successful\"\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "get book",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/{{v1}}/books/4?balance=true",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{v1}}",
+            "books",
+            "4"
+          ],
+          "query": [
+            {
+              "key": "balance",
+              "value": "true"
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "get book (bookId doesn't exist)",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3000/api/v1/books/121",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "v1",
+                "books",
+                "121"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Access-Control-Allow-Credentials",
+              "value": "true"
+            },
+            {
+              "key": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
+            },
+            {
+              "key": "Access-Control-Allow-Methods",
+              "value": "POST, OPTIONS, GET, PUT, DELETE"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 28 Mar 2022 08:12:41 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "49"
+            }
+          ],
+          "cookie": [
+            {
+              "expires": "Invalid Date"
+            }
+          ],
+          "body": "{\n    \"code\": 200,\n    \"msg\": \"SUCCESS\",\n    \"data\": {\n        \"book\": null\n    }\n}"
+        },
+        {
+          "name": "get book (success)",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{v1}}/books/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{v1}}",
+                "books",
+                "1"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Access-Control-Allow-Credentials",
+              "value": "true"
+            },
+            {
+              "key": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
+            },
+            {
+              "key": "Access-Control-Allow-Methods",
+              "value": "POST, OPTIONS, GET, PUT, DELETE"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 28 Mar 2022 09:14:44 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "223"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"code\": 200,\n    \"msg\": \"SUCCESS\",\n    \"data\": {\n        \"book\": {\n            \"createdAt\": \"2022-03-28T08:36:29.540468+05:30\",\n            \"id\": 1,\n            \"metadata\": {},\n            \"name\": \"company_account_book\",\n            \"updatedAt\": \"2022-03-28T09:51:11.842936+05:30\"\n        }\n    }\n}"
+        },
+        {
+          "name": "get book with balance",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{v1}}/books/4?balance=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{v1}}",
+                "books",
+                "4"
+              ],
+              "query": [
+                {
+                  "key": "balance",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Access-Control-Allow-Credentials",
+              "value": "true"
+            },
+            {
+              "key": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
+            },
+            {
+              "key": "Access-Control-Allow-Methods",
+              "value": "POST, OPTIONS, GET, PUT, DELETE"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 08 Apr 2022 21:45:51 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "456"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"code\": 200,\n    \"msg\": \"SUCCESS\",\n    \"data\": {\n        \"book\": {\n            \"balance\": {\n                \"btc\": {\n                    \"assetId\": \"btc\",\n                    \"balance\": \"2.00000034\",\n                    \"bookId\": \"4\",\n                    \"operationType\": \"OVERALL\"\n                },\n                \"inr\": {\n                    \"assetId\": \"inr\",\n                    \"balance\": \"100000000000000000000000\",\n                    \"bookId\": \"4\",\n                    \"operationType\": \"OVERALL\"\n                }\n            },\n            \"createdAt\": \"2022-03-28T01:46:47.877328+05:30\",\n            \"id\": 4,\n            \"metadata\": {\n                \"phone\": \"+919674753375\",\n                \"user_id\": 1\n            },\n            \"name\": \"dibyajyoti_main_book\",\n            \"updatedAt\": \"2022-03-28T08:40:57.814863+05:30\"\n        }\n    }\n}"
+        },
+        {
+          "name": "get book with balance [balance is not there for any asset for the given bookId]",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{v1}}/books/5?balance=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{v1}}",
+                "books",
+                "5"
+              ],
+              "query": [
+                {
+                  "key": "balance",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Access-Control-Allow-Credentials",
+              "value": "true"
+            },
+            {
+              "key": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
+            },
+            {
+              "key": "Access-Control-Allow-Methods",
+              "value": "POST, OPTIONS, GET, PUT, DELETE"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 08 Apr 2022 21:51:43 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "231"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"code\": 200,\n    \"msg\": \"SUCCESS\",\n    \"data\": {\n        \"book\": {\n            \"balance\": {},\n            \"createdAt\": \"2022-03-28T08:41:09.522371+05:30\",\n            \"id\": 5,\n            \"metadata\": {\n                \"phone\": \"+91xxxxx\",\n                \"user_id\": 1\n            },\n            \"name\": \"random_block_book\",\n            \"updatedAt\": \"2022-03-28T08:41:20.120364+05:30\"\n        }\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Post operation",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"type\": \"TRANSFER\",\n    \"memo\": \"MEMO_9\",\n    \"entries\": [{\n        \"bookId\": \"1\",\n        \"assetId\": \"inr\",\n        \"value\": \"20000\"\n    }, {\n        \"bookId\": \"4\",\n        \"assetId\": \"inr\",\n        \"value\": \"-20000\"\n    }],\n    \"metadata\": {\"operation\": \"DEPOSIT\"}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/{{v1}}/operations",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{v1}}",
+            "operations"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "non negative balance error",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": \"TRANSFER\",\n    \"memo\": \"MEMO_9\",\n    \"entries\": [{\n        \"bookId\": \"1\",\n        \"assetId\": \"inr\",\n        \"value\": \"20000\"\n    }, {\n        \"bookId\": \"4\",\n        \"assetId\": \"inr\",\n        \"value\": \"-20000\"\n    }],\n    \"metadata\": {\"operation\": \"DEPOSIT\"}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3000/api/v1/operations",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "v1",
+                "operations"
+              ]
+            }
+          },
+          "status": "Internal Server Error",
+          "code": 500,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Access-Control-Allow-Credentials",
+              "value": "true"
+            },
+            {
+              "key": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
+            },
+            {
+              "key": "Access-Control-Allow-Methods",
+              "value": "POST, OPTIONS, GET, PUT, DELETE"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Thu, 07 Apr 2022 16:54:59 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "209"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"code\": 500,\n    \"msg\": \"ERROR\",\n    \"data\": {\n        \"error\": \"ERROR: new row for relation \\\"book_balances\\\" violates check constraint \\\"non_negative_balance\\\" (SQLSTATE 23514)\",\n        \"message\": \"Creating operation resulted in error!\"\n    }\n}"
+        },
+        {
+          "name": "success",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": \"TRANSFER\",\n    \"memo\": \"MEMO_2\",\n    \"entries\": [{\n        \"bookId\": \"1\",\n        \"assetId\": \"inr\",\n        \"value\": \"20000\"\n    }, {\n        \"bookId\": \"4\",\n        \"assetId\": \"inr\",\n        \"value\": \"-20000\"\n    }],\n    \"metadata\": {\"operation\": \"DEPOSIT\"}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{v1}}/operations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{v1}}",
+                "operations"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Access-Control-Allow-Credentials",
+              "value": "true"
+            },
+            {
+              "key": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
+            },
+            {
+              "key": "Access-Control-Allow-Methods",
+              "value": "POST, OPTIONS, GET, PUT, DELETE"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Thu, 07 Apr 2022 21:02:20 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "368"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"code\": 200,\n    \"msg\": \"SUCCESS\",\n    \"data\": {\n        \"operation\": {\n            \"createdAt\": \"2022-04-07T20:40:19.109993+05:30\",\n            \"entries\": [\n                {\n                    \"assetId\": \"inr\",\n                    \"bookId\": \"1\",\n                    \"value\": \"-10000\"\n                },\n                {\n                    \"assetId\": \"inr\",\n                    \"bookId\": \"4\",\n                    \"value\": \"10000\"\n                }\n            ],\n            \"id\": 8,\n            \"memo\": \"MEMO_2\",\n            \"metadata\": {\n                \"operation\": \"DEPOSIT\"\n            },\n            \"rejectionReason\": \"\",\n            \"status\": \"APPLIED\",\n            \"type\": \"TRANSFER\",\n            \"updatedAt\": \"2022-04-07T20:40:19.125548+05:30\"\n        }\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get operation By Id",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/{{v1}}/operations?memo=MEMO_2",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{v1}}",
+            "operations"
+          ],
+          "query": [
+            {
+              "key": "memo",
+              "value": "MEMO_2"
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Memo not provided",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3000/api/v1/operations",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "v1",
+                "operations"
+              ]
+            }
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Access-Control-Allow-Credentials",
+              "value": "true"
+            },
+            {
+              "key": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
+            },
+            {
+              "key": "Access-Control-Allow-Methods",
+              "value": "POST, OPTIONS, GET, PUT, DELETE"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 08 Apr 2022 15:40:27 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "78"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"code\": 400,\n    \"msg\": \"INVALID_PARAMS\",\n    \"data\": {\n        \"message\": \"Memo is not provided!\"\n    }\n}"
+        },
+        {
+          "name": "Not found",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{v1}}/operations?memo=abc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{v1}}",
+                "operations"
+              ],
+              "query": [
+                {
+                  "key": "memo",
+                  "value": "abc"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Access-Control-Allow-Credentials",
+              "value": "true"
+            },
+            {
+              "key": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
+            },
+            {
+              "key": "Access-Control-Allow-Methods",
+              "value": "POST, OPTIONS, GET, PUT, DELETE"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 08 Apr 2022 15:40:51 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "54"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"code\": 404,\n    \"msg\": \"NOT_EXIST\",\n    \"data\": {\n        \"operation\": null\n    }\n}"
+        },
+        {
+          "name": "Data found",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{v1}}/operations?memo=MEMO_2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{v1}}",
+                "operations"
+              ],
+              "query": [
+                {
+                  "key": "memo",
+                  "value": "MEMO_2"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Access-Control-Allow-Credentials",
+              "value": "true"
+            },
+            {
+              "key": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
+            },
+            {
+              "key": "Access-Control-Allow-Methods",
+              "value": "POST, OPTIONS, GET, PUT, DELETE"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 08 Apr 2022 15:45:52 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "368"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"code\": 200,\n    \"msg\": \"SUCCESS\",\n    \"data\": {\n        \"operation\": {\n            \"createdAt\": \"2022-04-07T20:40:19.109993+05:30\",\n            \"entries\": [\n                {\n                    \"assetId\": \"inr\",\n                    \"bookId\": \"1\",\n                    \"value\": \"-10000\"\n                },\n                {\n                    \"assetId\": \"inr\",\n                    \"bookId\": \"4\",\n                    \"value\": \"10000\"\n                }\n            ],\n            \"id\": 8,\n            \"memo\": \"MEMO_2\",\n            \"metadata\": {\n                \"operation\": \"DEPOSIT\"\n            },\n            \"rejectionReason\": \"\",\n            \"status\": \"APPLIED\",\n            \"type\": \"TRANSFER\",\n            \"updatedAt\": \"2022-04-07T20:40:19.125548+05:30\"\n        }\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "get book balance",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/{{v1}}/books/4/balance",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{v1}}",
+            "books",
+            "4",
+            "balance"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "success",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3000/api/v1/books/4/balance",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "v1",
+                "books",
+                "4",
+                "balance"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Access-Control-Allow-Credentials",
+              "value": "true"
+            },
+            {
+              "key": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
+            },
+            {
+              "key": "Access-Control-Allow-Methods",
+              "value": "POST, OPTIONS, GET, PUT, DELETE"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 08 Apr 2022 19:38:35 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "191"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"code\": 200,\n    \"msg\": \"SUCCESS\",\n    \"data\": {\n        \"btc\": {\n            \"assetId\": \"btc\",\n            \"balance\": 2,\n            \"bookId\": \"4\",\n            \"operationType\": \"OVERALL\"\n        },\n        \"inr\": {\n            \"assetId\": \"inr\",\n            \"balance\": 10000,\n            \"bookId\": \"4\",\n            \"operationType\": \"OVERALL\"\n        }\n    }\n}"
+        },
+        {
+          "name": "no balance",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{v1}}/books/5/balance",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{v1}}",
+                "books",
+                "5",
+                "balance"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Access-Control-Allow-Credentials",
+              "value": "true"
+            },
+            {
+              "key": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
+            },
+            {
+              "key": "Access-Control-Allow-Methods",
+              "value": "POST, OPTIONS, GET, PUT, DELETE"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 08 Apr 2022 19:39:18 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "38"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"code\": 200,\n    \"msg\": \"SUCCESS\",\n    \"data\": {}\n}"
+        },
+        {
+          "name": "get book balance asset filter",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{v1}}/books/4/balance?assetId=inr",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{v1}}",
+                "books",
+                "4",
+                "balance"
+              ],
+              "query": [
+                {
+                  "key": "assetId",
+                  "value": "inr"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Access-Control-Allow-Credentials",
+              "value": "true"
+            },
+            {
+              "key": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
+            },
+            {
+              "key": "Access-Control-Allow-Methods",
+              "value": "POST, OPTIONS, GET, PUT, DELETE"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 08 Apr 2022 20:30:02 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "137"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"code\": 200,\n    \"msg\": \"SUCCESS\",\n    \"data\": {\n        \"inr\": {\n            \"assetId\": \"inr\",\n            \"balance\": \"100000000000000000000000\",\n            \"bookId\": \"4\",\n            \"operationType\": \"OVERALL\"\n        }\n    }\n}"
+        },
+        {
+          "name": "get book balance operation filter",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{v1}}/books/4/balance?operationType=DEPOSIT",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{v1}}",
+                "books",
+                "4",
+                "balance"
+              ],
+              "query": [
+                {
+                  "key": "operationType",
+                  "value": "DEPOSIT"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Access-Control-Allow-Credentials",
+              "value": "true"
+            },
+            {
+              "key": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
+            },
+            {
+              "key": "Access-Control-Allow-Methods",
+              "value": "POST, OPTIONS, GET, PUT, DELETE"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 08 Apr 2022 20:32:12 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "198"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"code\": 200,\n    \"msg\": \"SUCCESS\",\n    \"data\": {\n        \"btc\": {\n            \"assetId\": \"btc\",\n            \"balance\": \"50\",\n            \"bookId\": \"4\",\n            \"operationType\": \"DEPOSIT\"\n        },\n        \"inr\": {\n            \"assetId\": \"inr\",\n            \"balance\": \"-930000\",\n            \"bookId\": \"4\",\n            \"operationType\": \"DEPOSIT\"\n        }\n    }\n}"
+        },
+        {
+          "name": "get book balance with operation and asset filter",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{v1}}/books/4/balance?assetId=btc&operationType=DEPOSIT",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{v1}}",
+                "books",
+                "4",
+                "balance"
+              ],
+              "query": [
+                {
+                  "key": "assetId",
+                  "value": "btc"
+                },
+                {
+                  "key": "operationType",
+                  "value": "DEPOSIT"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Access-Control-Allow-Credentials",
+              "value": "true"
+            },
+            {
+              "key": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
+            },
+            {
+              "key": "Access-Control-Allow-Methods",
+              "value": "POST, OPTIONS, GET, PUT, DELETE"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 08 Apr 2022 20:32:52 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "115"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"code\": 200,\n    \"msg\": \"SUCCESS\",\n    \"data\": {\n        \"btc\": {\n            \"assetId\": \"btc\",\n            \"balance\": \"50\",\n            \"bookId\": \"4\",\n            \"operationType\": \"DEPOSIT\"\n        }\n    }\n}"
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "v1",
+      "value": "api/v1",
+      "type": "string"
+    }
+  ]
+}
