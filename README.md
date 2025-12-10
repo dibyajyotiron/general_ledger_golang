@@ -28,7 +28,9 @@ Import `collections/postman.json` into Postman for examples.
 ## Configuration
 - Viper loads configs from `internal/config/` based on `APP_ENV` (e.g., `local.yaml`).
 - `.env` is used by default in `local/localhost`, or when `DOT_ENV=enable` in other envs.
-- JSON envs are supported for nested maps (see `SERVICE_TOKEN_WHITELIST` examples below).
+- Env overrides use the `APP_` prefix automatically (`APP_SERVER_HTTPPORT`, `APP_DB_HOST`, etc.). Common aliases like `APP_PORT`/`HTTP_PORT`/`GRPC_PORT` are bound for convenience.
+- YAML placeholders like `${VAR}` are expanded from the process environment before parsing.
+- JSON env values remain supported for nested maps (see `SERVICE_TOKEN_WHITELIST` examples below).
 
 Example `.env`:
 ```
