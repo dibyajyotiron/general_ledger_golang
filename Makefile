@@ -1,7 +1,7 @@
 BIN_DIR = bin
 PROTO_DIR = api/proto
-SERVER_DIR = api/server
-CLIENT_DIR = api/client
+SERVER_DIR = cmd
+CLIENT_DIR = cmd/client
 
 # commenting out windows as no one's working on windows now
 #ifeq ($(OS), Windows_NT)

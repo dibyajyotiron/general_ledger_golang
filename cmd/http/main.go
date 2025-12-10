@@ -11,13 +11,13 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/thoas/go-funk"
 
-	"general_ledger_golang/api/server/routers"
+	"general_ledger_golang/internal/config"
+	"general_ledger_golang/internal/database"
+	auto "general_ledger_golang/internal/database/migrations/auto"
+	"general_ledger_golang/internal/logger"
+	httpserver "general_ledger_golang/internal/transport/http"
+	"general_ledger_golang/internal/util"
 	"general_ledger_golang/models"
-	"general_ledger_golang/pkg/config"
-	"general_ledger_golang/pkg/database"
-	"general_ledger_golang/pkg/database/migrations/auto"
-	"general_ledger_golang/pkg/logger"
-	"general_ledger_golang/pkg/util"
 )
 
 func init() {
@@ -29,7 +29,7 @@ func init() {
 			logger.Logger.Fatalf("Couldn't load .env, error: %+v", err)
 		}
 	}
-	config.Setup("./pkg/config/")
+	config.Setup("./internal/config/")
 	database.Setup()
 	models.Setup()
 
@@ -48,7 +48,7 @@ func main() {
 	conf := config.GetConfig()
 	gin.SetMode(conf.ServerSetting.RunMode)
 
-	router := routers.InitRouter()
+	router := httpserver.InitRouter()
 	readTimeout := conf.ServerSetting.ReadTimeout
 	writeTimeout := conf.ServerSetting.WriteTimeout
 	endPoint := fmt.Sprintf("localhost:%d", conf.ServerSetting.HttpPort) // endpoint should look like 'localhost:1234'

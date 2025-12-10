@@ -1,0 +1,28 @@
+app:
+  JwtSecret: "$APP_JWT_SECRET"
+  PrefixUrl: "http://127.0.0.1:$APP_PORT"
+  LogSavePath: "logs/"
+  LogSaveName: "log"
+  LogFileExt: "log"
+  TimeFormat: "20060102"
+server:
+  RunMode: "$APP_RUN_MODE"
+  HttpPort: "$APP_PORT"
+  ReadTimeout: "60s"
+  WriteTimeout: "60s"
+  GrpcPort: "$APP_GRPC_PORT"
+  # ServiceTokenWhitelist: "SERVICE_TOKEN_WHITELIST"
+database:
+  Type: "$APP_DB_TYPE"
+  User: "$APP_DB_USER"
+  Password: "$APP_DB_PASSWORD"
+  Host: "$APP_DB_HOST"
+  Port: "$APP_DB_PORT"
+  Name: "$APP_DB_NAME"
+  TablePrefix: "$APP_DB_TABLE_PREFIX"
+  SSLMode: "$APP_DB_SSL_MODE"
+redis:
+  Host: "127.0.0.1:6379"
+  MaxIdle: "30"
+  MaxActive: "30"
+  IdleTimeout: "200s"

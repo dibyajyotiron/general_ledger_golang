@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 
 	"general_ledger_golang/domain"
-	"general_ledger_golang/pkg/logger"
+	"general_ledger_golang/internal/logger"
 )
 
 type BookBalance struct {

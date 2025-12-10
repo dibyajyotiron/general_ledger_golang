@@ -9,7 +9,7 @@ import (
 	_ "github.com/golang-migrate/migrate/source/file"
 	asrt "github.com/stretchr/testify/assert"
 
-	_ "general_ledger_golang/pkg/logger"
+	_ "general_ledger_golang/internal/logger"
 	"general_ledger_golang/tests"
 )
 
@@ -31,11 +31,9 @@ func TestGetBook(t *testing.T) {
 			Msg  string `json:"msg"`
 			Data struct {
 				Book struct {
-					Book struct {
-						ID       float64                `json:"id"`
-						Name     string                 `json:"name"`
-						Metadata map[string]interface{} `json:"metadata"`
-					} `json:"book"`
+					ID       float64                `json:"id"`
+					Name     string                 `json:"name"`
+					Metadata map[string]interface{} `json:"metadata"`
 				} `json:"book"`
 			} `json:"data"`
 		}
@@ -44,10 +42,10 @@ func TestGetBook(t *testing.T) {
 		assert.Nil(err)
 		assert.Equal(200, decoded.Code)
 		assert.Equal("SUCCESS", decoded.Msg)
-		assert.Equal(float64(4), decoded.Data.Book.Book.ID)
-		assert.Equal("dibyajyoti_main_book", decoded.Data.Book.Book.Name)
-		assert.Equal("+919674753375", decoded.Data.Book.Book.Metadata["phone"])
-		assert.Equal(float64(1), decoded.Data.Book.Book.Metadata["user_id"])
+		assert.Equal(float64(4), decoded.Data.Book.ID)
+		assert.Equal("dibyajyoti_main_book", decoded.Data.Book.Name)
+		assert.Equal("+919674753375", decoded.Data.Book.Metadata["phone"])
+		assert.Equal(float64(1), decoded.Data.Book.Metadata["user_id"])
 	})
 }
 

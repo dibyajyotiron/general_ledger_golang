@@ -6,7 +6,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"general_ledger_golang/pkg/database"
+	"general_ledger_golang/internal/database"
 )
 
 var db *gorm.DB

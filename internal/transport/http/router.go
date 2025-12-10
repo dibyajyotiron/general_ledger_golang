@@ -1,0 +1,52 @@
+package httpserver
+
+import (
+	"github.com/gin-gonic/gin"
+
+	"general_ledger_golang/dto"
+	v1 "general_ledger_golang/internal/transport/http/handler/v1"
+	"general_ledger_golang/internal/transport/http/middleware"
+)
+
+// InitRouter initialize routing information
+func InitRouter() *gin.Engine {
+	r := gin.New()
+
+	// default middlewares
+	r.Use(gin.Logger())
+
+	// Custom middlewares
+	r.Use(middleware.CORS())
+	r.Use(gin.CustomRecovery(middleware.ErrorHandler))
+
+	// apiV1 groups
+	apiV1 := r.Group("/api/v1")
+
+	// Jwt unprotected routes
+	apiV1.GET("/test", v1.TestAppStatus)
+
+	// Books route
+	apiV1BooksGroup := apiV1.Group("/books")
+	apiV1BooksGroup.POST("/", middleware.BindAndValidate[dto.BookPayload]("bookPayload"), v1.CreateOrUpdateBook)
+	apiV1BooksGroup.GET("/:bookId", v1.GetBook)
+	apiV1BooksGroup.GET("/:bookId/balance", v1.GetBookBalance)
+
+	// Operations route
+	apiV1OperationsGroup := apiV1.Group("/operations")
+	apiV1OperationsGroup.POST("/", middleware.BindAndValidate[dto.OperationPayload]("operationPayload"), v1.PostOperation)
+	apiV1OperationsGroup.GET("/", v1.GetOperationByMemo)
+	// Jwt protected routes
+
+	apiV1.GET("/secured/test",
+		// middleware.JWT(),
+		v1.TestAppStatus)
+
+	// apiV2 Jwt protected routes
+	apiV2 := r.Group("/api/v2") // middleware.JWT()
+
+	{
+		apiV2.GET("/test", v1.TestAppStatus)
+	}
+
+	return r
+}

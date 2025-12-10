@@ -5,7 +5,7 @@ import (
 
 	asrt "github.com/stretchr/testify/assert"
 
-	"general_ledger_golang/pkg/util"
+	"general_ledger_golang/internal/util"
 )
 
 func TestIncludes(t *testing.T) {

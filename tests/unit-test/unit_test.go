@@ -9,9 +9,9 @@ import (
 	asrt "github.com/stretchr/testify/assert"
 
 	"general_ledger_golang/domain"
+	"general_ledger_golang/internal/config"
+	"general_ledger_golang/internal/logger"
 	"general_ledger_golang/models"
-	"general_ledger_golang/pkg/config"
-	"general_ledger_golang/pkg/logger"
 )
 
 func TestQueryGeneration(t *testing.T) {
@@ -57,7 +57,7 @@ func TestConfig(t *testing.T) {
 	err := godotenv.Load("../../.env")
 	assert.Nil(err)
 
-	config.Setup("../../pkg/config/")
+	config.Setup("../../internal/config/")
 	c := *config.GetConfig()
 
 	fmt.Printf("Config App: %+v\n", *c.AppSetting)
