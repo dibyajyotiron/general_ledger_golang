@@ -12,8 +12,7 @@ require (
 	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/joho/godotenv v1.4.0
 	github.com/shirou/gopsutil/v3 v3.22.2
-	github.com/shopspring/decimal v1.2.0
-	github.com/sirupsen/logrus v1.8.1
+	github.com/sirupsen/logrus v1.8.3
 	github.com/spf13/viper v1.11.0
 	github.com/stretchr/testify v1.7.1
 	github.com/thoas/go-funk v0.9.2
